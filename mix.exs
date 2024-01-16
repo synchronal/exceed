@@ -12,7 +12,7 @@ defmodule Exceed.MixProject do
     do: [
       app: :exceed,
       version: @version,
-      elixir: "~> 1.16",
+      elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
