@@ -5,5 +5,6 @@
 /deps/
 /doc/
 /tmp/
+Brewfile.lock.json
 erl_crash.dump
 exceed-*.tar

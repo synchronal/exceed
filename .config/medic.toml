@@ -1,0 +1,51 @@
+[doctor]
+checks = [
+  { check = "homebrew" },
+  { check = "tool-versions", command = "plugin-installed", args = { plugin = "erlang" } },
+  { check = "tool-versions", command = "plugin-installed", args = { plugin = "elixir" } },
+  { check = "tool-versions", command = "package-installed", args = { plugin = "erlang" } },
+  { check = "tool-versions", command = "package-installed", args = { plugin = "elixir" } },
+  { check = "elixir", command = "local-hex" },
+  { check = "elixir", command = "local-rebar" },
+  { check = "elixir", command = "packages-installed" },
+]
+
+[test]
+checks = [
+  { name = "Check for warnings", shell = "mix compile --force --warnings-as-errors" },
+  { name = "Elixir tests", shell = "mix test --color --warnings-as-errors", verbose = true },
+]
+
+[audit]
+checks = [
+  { name = "Check formatting", shell = "mix format --check-formatted", remedy = "mix format" },
+  { step = "elixir", command = "audit-deps" },
+  { step = "elixir", command = "credo" },
+  { step = "elixir", command = "dialyzer" },
+  { check = "elixir", command = "unused-deps" },
+]
+
+[outdated]
+checks = [
+  { check = "elixir" },
+]
+
+[update]
+steps = [
+  { step = "git", command = "pull" },
+  { step = "elixir", command = "get-deps" },
+  { step = "elixir", command = "compile-deps", args = { mix-env = "dev" } },
+  { step = "elixir", command = "compile-deps", args = { mix-env = "test" } },
+  { doctor = {} },
+  { name = "Build docs", shell = "mix docs" },
+]
+
+[shipit]
+steps = [
+  { audit = {} },
+  { update = {} },
+  { test = {} },
+  { step = "git", command = "push" },
+  { step = "github", command = "link-to-actions", verbose = true },
+]
+
