@@ -32,7 +32,9 @@ defmodule Exceed.MixProject do
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.28", only: [:docs, :dev], runtime: false},
       {:mix_audit, "~> 2.0", only: :dev, runtime: false},
-      {:moar, "~> 1.50", only: :test}
+      {:moar, "~> 1.50", only: :test},
+      {:xml_stream, "~> 0.2.0"},
+      {:zstream, "~> 0.6.4"}
     ]
 
   defp dialyzer,
