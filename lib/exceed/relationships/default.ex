@@ -1,4 +1,4 @@
-defmodule Exceed.Relationships do
+defmodule Exceed.Relationships.Default do
   @moduledoc false
 
   def to_file do

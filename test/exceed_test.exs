@@ -21,7 +21,13 @@ defmodule ExceedTest do
 
       files
       |> Enum.map(fn {:zip_file, name, _info, _, _, _} -> name end)
-      |> assert_eq([~c"[Content_Types].xml", ~c"_rels/.rels", ~c"docProps/app.xml", ~c"docProps/core.xml"])
+      |> assert_eq([
+        ~c"[Content_Types].xml",
+        ~c"_rels/.rels",
+        ~c"docProps/app.xml",
+        ~c"docProps/core.xml",
+        ~c"xl/_rels/workbook.xml.rels"
+      ])
 
       # assert {:ok, _wb} = XlsxReader.open(filename)
     end
@@ -102,6 +108,19 @@ defmodule ExceedTest do
       assert_recent(created_at)
 
       assert props |> Xq.find!("cp:revision") |> Xq.text() == "0"
+    end
+
+    test "includes a xl/_rels/workbook.xml.rels", %{tmpdir: tmpdir} do
+      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
+      {:ok, relationships} = extract_file(filename, "xl/_rels/workbook.xml.rels")
+
+      assert [style] =
+               Xq.find!(relationships, "/Relationships")
+               |> Xq.all("Relationship")
+
+      assert Xq.attr(style, "Target") == "styles.xml"
+      assert Xq.attr(style, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
+      assert Xq.attr(style, "Id") == "rId1"
     end
   end
 end
