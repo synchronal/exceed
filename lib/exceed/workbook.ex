@@ -7,12 +7,15 @@ defmodule Exceed.Workbook do
   ## Examples
 
   ``` elixir
-  iex> Exceed.Workbook.new()
-  %Exceed.Workbook{sheets: []}
+  iex> Exceed.Workbook.new("creator name")
+  %Exceed.Workbook{creator: "creator name", sheets: []}
   ```
   """
 
-  defstruct sheets: []
+  defstruct [
+    :creator,
+    sheets: []
+  ]
 
-  def new, do: __struct__()
+  def new(creator), do: __struct__(creator: creator)
 end

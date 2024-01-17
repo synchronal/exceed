@@ -11,7 +11,7 @@ defmodule ExceedTest do
     test "converts a workbook to a zlib stream that can be streamed to a file", %{tmpdir: tmpdir} do
       filename = Path.join(tmpdir, "empty_workbook.xlsx")
 
-      assert_that(Exceed.Workbook.new() |> Exceed.stream!() |> Stream.into(File.stream!(filename)) |> Stream.run(),
+      assert_that(Exceed.Workbook.new("me") |> Exceed.stream!() |> Stream.into(File.stream!(filename)) |> Stream.run(),
         changes: File.exists?(filename),
         from: false,
         to: true
@@ -21,13 +21,13 @@ defmodule ExceedTest do
 
       files
       |> Enum.map(fn {:zip_file, name, _info, _, _, _} -> name end)
-      |> assert_eq([~c"[Content_Types].xml", ~c"_rels/.rels"])
+      |> assert_eq([~c"[Content_Types].xml", ~c"_rels/.rels", ~c"docProps/app.xml", ~c"docProps/core.xml"])
 
       # assert {:ok, _wb} = XlsxReader.open(filename)
     end
 
     test "includes a [Content_Types].xml", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new() |> stream_to_file(tmpdir)
+      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
       {:ok, content_type} = extract_file(filename, "[Content_Types].xml")
 
       assert [rels, xml] =
@@ -58,7 +58,7 @@ defmodule ExceedTest do
     end
 
     test "includes a _rels/.rels", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new() |> stream_to_file(tmpdir)
+      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
       {:ok, relationships} = extract_file(filename, "_rels/.rels")
 
       assert [wb, core, app] =
@@ -82,6 +82,26 @@ defmodule ExceedTest do
                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"
 
       assert Xq.attr(app, "Id") == "rId3"
+    end
+
+    test "includes a docProps/app.xml", %{tmpdir: tmpdir} do
+      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
+      {:ok, app} = extract_file(filename, "docProps/app.xml")
+
+      assert Xq.find!(app, "/Properties")
+    end
+
+    test "includes a docProps/core.xml", %{tmpdir: tmpdir} do
+      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
+      {:ok, app} = extract_file(filename, "docProps/core.xml")
+
+      assert props = Xq.find!(app, "/cp:coreProperties")
+
+      assert props |> Xq.find!("dc:creator") |> Xq.text() == "me"
+      assert {:ok, created_at, _} = props |> Xq.find!("dcterms:created") |> Xq.text() |> DateTime.from_iso8601()
+      assert_recent(created_at)
+
+      assert props |> Xq.find!("cp:revision") |> Xq.text() == "0"
     end
   end
 end
