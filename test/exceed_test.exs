@@ -11,32 +11,24 @@ defmodule ExceedTest do
     test "converts a workbook to a zlib stream that can be streamed to a file", %{tmpdir: tmpdir} do
       filename = Path.join(tmpdir, "empty_workbook.xlsx")
 
-      assert_that(
-        Exceed.Workbook.new()
-        |> Exceed.stream!()
-        |> Stream.into(File.stream!(filename))
-        |> Stream.run(),
+      assert_that(Exceed.Workbook.new() |> Exceed.stream!() |> Stream.into(File.stream!(filename)) |> Stream.run(),
         changes: File.exists?(filename),
         from: false,
         to: true
       )
 
-      assert {:ok, handle} = :zip.zip_open(String.to_charlist(filename), [:memory])
-      assert {:ok, [{~c"[Content_Types].xml", _}, {~c"_rels/.rels", _}]} = :zip.zip_get(handle)
+      assert {:ok, [{:zip_comment, _} | files]} = :zip.list_dir(String.to_charlist(filename))
+
+      files
+      |> Enum.map(fn {:zip_file, name, _info, _, _, _} -> name end)
+      |> assert_eq([~c"[Content_Types].xml", ~c"_rels/.rels"])
 
       # assert {:ok, _wb} = XlsxReader.open(filename)
     end
 
     test "includes a [Content_Types].xml", %{tmpdir: tmpdir} do
-      filename = Path.join(tmpdir, "empty_workbook.xlsx")
-
-      Exceed.Workbook.new()
-      |> Exceed.stream!()
-      |> Stream.into(File.stream!(filename))
-      |> Stream.run()
-
-      assert {:ok, handle} = :zip.zip_open(String.to_charlist(filename), [:memory])
-      {:ok, {_zip_name, content_type}} = :zip.zip_get(~c"[Content_Types].xml", handle)
+      filename = Exceed.Workbook.new() |> stream_to_file(tmpdir)
+      {:ok, content_type} = extract_file(filename, "[Content_Types].xml")
 
       assert [rels, xml] =
                Xq.find!(content_type, "/Types")
@@ -66,15 +58,8 @@ defmodule ExceedTest do
     end
 
     test "includes a _rels/.rels", %{tmpdir: tmpdir} do
-      filename = Path.join(tmpdir, "empty_workbook.xlsx")
-
-      Exceed.Workbook.new()
-      |> Exceed.stream!()
-      |> Stream.into(File.stream!(filename))
-      |> Stream.run()
-
-      assert {:ok, handle} = :zip.zip_open(String.to_charlist(filename), [:memory])
-      {:ok, {_zip_name, relationships}} = :zip.zip_get(~c"_rels/.rels", handle)
+      filename = Exceed.Workbook.new() |> stream_to_file(tmpdir)
+      {:ok, relationships} = extract_file(filename, "_rels/.rels")
 
       assert [wb, core, app] =
                Xq.find!(relationships, "/Relationships")

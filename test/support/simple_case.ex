@@ -21,4 +21,21 @@ defmodule Test.SimpleCase do
   end
 
   def make_tmpdir(_context), do: [tmpdir: tmpdir()]
+
+  def stream_to_file(workbook, tmpdir) do
+    filename = Path.join(tmpdir, "workbook.xlsx")
+
+    workbook
+    |> Exceed.stream!()
+    |> Stream.into(File.stream!(filename))
+    |> Stream.run()
+
+    String.to_charlist(filename)
+  end
+
+  def extract_file(filename, part) do
+    {:ok, handle} = :zip.zip_open(filename, [:memory])
+    {:ok, {_zip_name, xml}} = :zip.zip_get(~c"#{part}", handle)
+    {:ok, xml}
+  end
 end
