@@ -6,7 +6,8 @@ defmodule Exceed do
 
   def stream!(%Exceed.Workbook{} = _wb) do
     Zstream.zip([
-      Exceed.ContentType.to_file()
+      Exceed.ContentType.to_file(),
+      Exceed.Relationships.to_file()
     ])
   end
 end
