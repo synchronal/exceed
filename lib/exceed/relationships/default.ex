@@ -1,7 +1,7 @@
 defmodule Exceed.Relationships.Default do
   @moduledoc false
 
-  def to_file do
+  def to_xml do
     [
       XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       XmlStream.element(
@@ -26,7 +26,6 @@ defmodule Exceed.Relationships.Default do
         ]
       )
     ]
-    |> Exceed.File.file("_rels/.rels")
   end
 
   defp type(type),

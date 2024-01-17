@@ -1,7 +1,7 @@
 defmodule Exceed.DocProps.Core do
   @moduledoc false
 
-  def to_file(creator) do
+  def to_xml(creator) do
     now = DateTime.utc_now() |> DateTime.to_iso8601()
 
     [
@@ -22,6 +22,5 @@ defmodule Exceed.DocProps.Core do
         ]
       )
     ]
-    |> Exceed.File.file("docProps/core.xml")
   end
 end

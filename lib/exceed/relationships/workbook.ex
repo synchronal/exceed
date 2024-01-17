@@ -1,7 +1,7 @@
 defmodule Exceed.Relationships.Workbook do
   @moduledoc false
 
-  def to_file do
+  def to_xml do
     [
       XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       XmlStream.element(
@@ -16,7 +16,6 @@ defmodule Exceed.Relationships.Workbook do
         ]
       )
     ]
-    |> Exceed.File.file("xl/_rels/workbook.xml.rels")
   end
 
   defp type(type),

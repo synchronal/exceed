@@ -1,7 +1,7 @@
 defmodule Exceed.ContentType do
   @moduledoc false
 
-  def to_file do
+  def to_xml do
     [
       XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       XmlStream.element("Types", %{"xmlns" => "http://schemas.openxmlformats.org/package/2006/content-types"}, [
@@ -31,6 +31,5 @@ defmodule Exceed.ContentType do
         })
       ])
     ]
-    |> Exceed.File.file("[Content_Types].xml")
   end
 end

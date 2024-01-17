@@ -5,12 +5,19 @@ defmodule Exceed do
   """
 
   def stream!(%Exceed.Workbook{} = wb) do
-    Zstream.zip([
-      Exceed.ContentType.to_file(),
-      Exceed.Relationships.Default.to_file(),
-      Exceed.DocProps.App.to_file(),
-      Exceed.DocProps.Core.to_file(wb.creator),
-      Exceed.Relationships.Workbook.to_file()
-    ])
+    [
+      {Exceed.ContentType.to_xml(), "[Content_Types].xml"},
+      {Exceed.Relationships.Default.to_xml(), "_rels/.rels"},
+      {Exceed.DocProps.App.to_xml(), "docProps/app.xml"},
+      {Exceed.DocProps.Core.to_xml(wb.creator), "docProps/core.xml"},
+      {Exceed.Relationships.Workbook.to_xml(), "xl/_rels/workbook.xml.rels"}
+    ]
+    |> Enum.map(&to_file/1)
+    |> Zstream.zip()
   end
+
+  # # #
+
+  defp to_file({xml, filename}),
+    do: Exceed.File.file(xml, filename)
 end
