@@ -12,6 +12,11 @@ defmodule Exceed.Relationships.Workbook do
             "Target" => "styles.xml",
             "Type" => type("styles"),
             "Id" => "rId1"
+          }),
+          XmlStream.empty_element("Relationship", %{
+            "Target" => "sharedStrings.xml",
+            "Type" => type("sharedStrings"),
+            "Id" => "rId2"
           })
         ]
       )

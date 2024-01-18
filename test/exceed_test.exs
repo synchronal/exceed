@@ -27,10 +27,12 @@ defmodule ExceedTest do
         ~c"docProps/app.xml",
         ~c"docProps/core.xml",
         ~c"xl/_rels/workbook.xml.rels",
-        ~c"xl/workbook.xml"
+        ~c"xl/workbook.xml",
+        ~c"xl/styles.xml",
+        ~c"xl/sharedStrings.xml"
       ])
 
-      # assert {:ok, _wb} = XlsxReader.open(filename)
+      assert {:ok, _wb} = XlsxReader.open(filename)
     end
 
     test "includes a [Content_Types].xml", %{tmpdir: tmpdir} do
@@ -47,9 +49,12 @@ defmodule ExceedTest do
       assert Xq.attr(xml, "Extension") == "xml"
       assert Xq.attr(xml, "ContentType") == "application/xml"
 
-      assert [app, core, styles, wb] =
+      assert [wb, app, core, wb_rels, styles, strings] =
                Xq.find!(content_type, "/Types")
                |> Xq.all("Override")
+
+      assert Xq.attr(wb, "PartName") == "/xl/workbook.xml"
+      assert Xq.attr(wb, "ContentType") == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
 
       assert Xq.attr(app, "PartName") == "/docProps/app.xml"
       assert Xq.attr(app, "ContentType") == "application/vnd.openxmlformats-officedocument.extended-properties+xml"
@@ -57,11 +62,16 @@ defmodule ExceedTest do
       assert Xq.attr(core, "PartName") == "/docProps/core.xml"
       assert Xq.attr(core, "ContentType") == "application/vnd.openxmlformats-package.core-properties+xml"
 
+      assert Xq.attr(wb_rels, "PartName") == "/xl/_rels/workbook.xml.rels"
+      assert Xq.attr(wb_rels, "ContentType") == "application/vnd.openxmlformats-package.relationships+xml"
+
       assert Xq.attr(styles, "PartName") == "/xl/styles.xml"
       assert Xq.attr(styles, "ContentType") == "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"
 
-      assert Xq.attr(wb, "PartName") == "/xl/workbook.xml"
-      assert Xq.attr(wb, "ContentType") == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
+      assert Xq.attr(strings, "PartName") == "/xl/sharedStrings.xml"
+
+      assert Xq.attr(strings, "ContentType") ==
+               "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"
     end
 
     test "includes a _rels/.rels", %{tmpdir: tmpdir} do
@@ -115,13 +125,20 @@ defmodule ExceedTest do
       filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
       {:ok, relationships} = extract_file(filename, "xl/_rels/workbook.xml.rels")
 
-      assert [style] =
+      assert [style, strings] =
                Xq.find!(relationships, "/Relationships")
                |> Xq.all("Relationship")
 
       assert Xq.attr(style, "Target") == "styles.xml"
       assert Xq.attr(style, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
       assert Xq.attr(style, "Id") == "rId1"
+
+      assert Xq.attr(strings, "Target") == "sharedStrings.xml"
+
+      assert Xq.attr(strings, "Type") ==
+               "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"
+
+      assert Xq.attr(strings, "Id") == "rId2"
     end
 
     test "includes an xl/workbook.xml", %{tmpdir: tmpdir} do

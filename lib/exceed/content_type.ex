@@ -14,6 +14,10 @@ defmodule Exceed.ContentType do
           "Extension" => "xml"
         }),
         XmlStream.empty_element("Override", %{
+          "ContentType" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml",
+          "PartName" => "/xl/workbook.xml"
+        }),
+        XmlStream.empty_element("Override", %{
           "ContentType" => "application/vnd.openxmlformats-officedocument.extended-properties+xml",
           "PartName" => "/docProps/app.xml"
         }),
@@ -22,12 +26,16 @@ defmodule Exceed.ContentType do
           "PartName" => "/docProps/core.xml"
         }),
         XmlStream.empty_element("Override", %{
+          "ContentType" => "application/vnd.openxmlformats-package.relationships+xml",
+          "PartName" => "/xl/_rels/workbook.xml.rels"
+        }),
+        XmlStream.empty_element("Override", %{
           "ContentType" => "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml",
           "PartName" => "/xl/styles.xml"
         }),
         XmlStream.empty_element("Override", %{
-          "ContentType" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml",
-          "PartName" => "/xl/workbook.xml"
+          "ContentType" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml",
+          "PartName" => "/xl/sharedStrings.xml"
         })
       ])
     ]
