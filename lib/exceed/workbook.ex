@@ -25,10 +25,7 @@ defmodule Exceed.Workbook do
       XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       XmlStream.element(
         "workbook",
-        %{
-          "xmlns" => "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
-          "xmlns:r" => "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
-        },
+        %{"xmlns" => Exceed.Namespace.main(), "xmlns:r" => Exceed.Namespace.relationships()},
         [
           XmlStream.element("sheets", [])
         ]

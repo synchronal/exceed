@@ -9,11 +9,11 @@ defmodule Exceed.DocProps.Core do
       XmlStream.element(
         "cp:coreProperties",
         %{
-          "xmlns:cp" => "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
-          "xmlns:dc" => "http://purl.org/dc/elements/1.1/",
-          "xmlns:dcmitype" => "http://purl.org/dc/dcmitype/",
-          "xmlns:dcterms" => "http://purl.org/dc/terms/",
-          "xmlns:xsi" => "http://www.w3.org/2001/XMLSchema-instance"
+          "xmlns:cp" => Exceed.Namespace.core_props(),
+          "xmlns:dc" => Exceed.Namespace.dublin_core(),
+          "xmlns:dcmitype" => Exceed.Namespace.dublin_core_type(),
+          "xmlns:dcterms" => Exceed.Namespace.dublin_core_terms(),
+          "xmlns:xsi" => Exceed.Namespace.schema_instance()
         },
         [
           XmlStream.element("dc:creator", XmlStream.content(creator)),

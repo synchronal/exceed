@@ -5,8 +5,8 @@ defmodule Exceed.DocProps.App do
     [
       XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       XmlStream.empty_element("Properties", %{
-        "xmlns" => "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
-        "xmlns:vt" => "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes"
+        "xmlns" => Exceed.Namespace.extended_properties(),
+        "xmlns:vt" => Exceed.Namespace.doc_props_vt()
       })
     ]
   end
