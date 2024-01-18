@@ -5,7 +5,7 @@ defmodule ExceedTest do
 
   doctest Exceed
 
-  describe "stream!" do
+  describe "stream! without worksheets" do
     setup [:make_tmpdir]
 
     test "converts a workbook to a zlib stream that can be streamed to a file", %{tmpdir: tmpdir} do
@@ -151,6 +151,41 @@ defmodule ExceedTest do
                |> Xq.all("sheets")
 
       assert sheets |> to_string() == "<sheets/>"
+    end
+  end
+
+  describe "stream! with worksheets" do
+    setup [:make_tmpdir]
+
+    setup %{tmpdir: tmpdir} do
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(
+          Exceed.Worksheet.new(
+            "First Worksheet",
+            ["Header A", "Header B", "Header C"],
+            [["Content A1", "Content B1", "Content C1"], ["Content A2", "Content B2", "Content C2"]]
+          )
+        )
+        |> Exceed.Workbook.add_worksheet(
+          Exceed.Worksheet.new(
+            "Second Worksheet",
+            ["Header AA", "Header BB"],
+            [["Content AA1", "Content BB1"], ["Content AA2", "Content BB2"]]
+          )
+        )
+        |> stream_to_file(tmpdir)
+
+      [filename: filename]
+    end
+
+    test "includes a part for each sheet", %{filename: filename} do
+      assert {:ok, [{:zip_comment, _} | files]} = :zip.list_dir(filename)
+
+      parts = files |> Enum.map(fn {:zip_file, name, _info, _, _, _} -> to_string(name) end)
+
+      assert "xl/worksheets/sheet1.xml" in parts
+      assert "xl/worksheets/sheet2.xml" in parts
     end
   end
 end

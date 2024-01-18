@@ -8,16 +8,26 @@ defmodule Exceed.Workbook do
 
   ``` elixir
   iex> Exceed.Workbook.new("creator name")
-  %Exceed.Workbook{creator: "creator name", sheets: []}
+  %Exceed.Workbook{creator: "creator name", worksheets: []}
   ```
   """
 
+  alias Exceed.Worksheet
+
+  @type t() :: %__MODULE__{
+          creator: String.t(),
+          worksheets: [Worksheet.t()]
+        }
+
   defstruct [
     :creator,
-    sheets: []
+    worksheets: []
   ]
 
   def new(creator), do: __struct__(creator: creator)
+
+  def add_worksheet(%__MODULE__{} = wb, %Worksheet{} = ws),
+    do: %{wb | worksheets: [ws | wb.worksheets]}
 
   @doc false
   def to_xml(%__MODULE__{}) do

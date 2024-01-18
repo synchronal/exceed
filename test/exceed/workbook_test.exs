@@ -8,7 +8,7 @@ defmodule Exceed.WorkbookTest do
 
   describe "new" do
     test "produces a new workbook with no sheets" do
-      assert %Workbook{creator: "person", sheets: []} == Workbook.new("person")
+      assert %Workbook{creator: "person", worksheets: []} == Workbook.new("person")
     end
   end
 end
