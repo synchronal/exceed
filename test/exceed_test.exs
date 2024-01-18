@@ -32,7 +32,8 @@ defmodule ExceedTest do
         ~c"xl/sharedStrings.xml"
       ])
 
-      assert {:ok, _wb} = XlsxReader.open(filename)
+      assert {:ok, wb} = XlsxReader.open(filename)
+      assert XlsxReader.sheet_names(wb) == []
     end
 
     test "includes a [Content_Types].xml", %{tmpdir: tmpdir} do
