@@ -26,7 +26,8 @@ defmodule ExceedTest do
         ~c"_rels/.rels",
         ~c"docProps/app.xml",
         ~c"docProps/core.xml",
-        ~c"xl/_rels/workbook.xml.rels"
+        ~c"xl/_rels/workbook.xml.rels",
+        ~c"xl/workbook.xml"
       ])
 
       # assert {:ok, _wb} = XlsxReader.open(filename)
@@ -121,6 +122,17 @@ defmodule ExceedTest do
       assert Xq.attr(style, "Target") == "styles.xml"
       assert Xq.attr(style, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
       assert Xq.attr(style, "Id") == "rId1"
+    end
+
+    test "includes an xl/workbook.xml", %{tmpdir: tmpdir} do
+      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
+      {:ok, wb} = extract_file(filename, "xl/workbook.xml")
+
+      assert [sheets] =
+               Xq.find!(wb, "/workbook")
+               |> Xq.all("sheets")
+
+      assert sheets |> to_string() == "<sheets/>"
     end
   end
 end
