@@ -3,7 +3,7 @@ defmodule Exceed.Relationships.Default do
 
   def to_xml do
     [
-      XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
+      XmlStream.declaration(version: "1.0", encoding: "UTF-8"),
       XmlStream.element("Relationships", %{"xmlns" => Exceed.Namespace.relationships()}, [
         XmlStream.empty_element("Relationship", %{
           "Target" => "xl/workbook.xml",

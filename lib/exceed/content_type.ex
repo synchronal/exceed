@@ -3,7 +3,7 @@ defmodule Exceed.ContentType do
 
   def to_xml(%Exceed.Workbook{worksheets: worksheets}) do
     [
-      XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
+      XmlStream.declaration(version: "1.0", encoding: "UTF-8"),
       XmlStream.element("Types", %{"xmlns" => Exceed.Namespace.content_types()}, [
         XmlStream.empty_element("Default", %{
           "ContentType" => "application/vnd.openxmlformats-package.relationships+xml",

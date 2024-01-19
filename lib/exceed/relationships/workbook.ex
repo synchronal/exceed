@@ -5,7 +5,7 @@ defmodule Exceed.Relationships.Workbook do
 
   def to_xml(%Exceed.Workbook{worksheets: sheets}) do
     [
-      Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
+      Xs.declaration(version: "1.0", encoding: "UTF-8"),
       Xs.element("Relationships", %{"xmlns" => Exceed.Namespace.relationships()}, [
         Xs.empty_element("Relationship", %{
           "Target" => "styles.xml",

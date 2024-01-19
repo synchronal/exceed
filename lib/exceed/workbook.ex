@@ -37,10 +37,10 @@ defmodule Exceed.Workbook do
   @doc false
   def to_xml(%__MODULE__{worksheets: worksheets}) do
     [
-      Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
+      Xs.declaration(version: "1.0", encoding: "UTF-8"),
       Xs.element(
         "workbook",
-        %{"xmlns" => Exceed.Namespace.main(), "xmlns:r" => Exceed.Namespace.relationships()},
+        %{"xmlns" => Exceed.Namespace.main(), "xmlns:r" => Exceed.Namespace.doc_relationships()},
         [
           Xs.element(
             "sheets",

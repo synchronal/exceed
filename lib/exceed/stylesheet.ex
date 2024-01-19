@@ -7,11 +7,11 @@ defmodule Exceed.Stylesheet do
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       Xs.element("styleSheet", %{"xmlns" => Exceed.Namespace.main()}, [
-        Xs.element("numFmts", %{"count" => "0"}, []),
+        # Xs.element("numFmts", %{"count" => "0"}, []),
         Xs.element("fonts", %{"count" => "1"}, [
           Xs.empty_element("font")
         ]),
-        Xs.element("fills", %{"count" => "0"}, [
+        Xs.element("fills", %{"count" => "1"}, [
           Xs.element("fill", [
             Xs.empty_element("patternFill", %{"patternType" => "none"})
           ])
@@ -25,7 +25,14 @@ defmodule Exceed.Stylesheet do
             Xs.empty_element("top")
           ])
         ]),
-        Xs.element("cellXfs", %{"count" => "0"}, []),
+        Xs.element("cellXfs", %{"count" => "1"}, [
+          Xs.empty_element("xf", %{
+            "borderId" => "0",
+            "fontId" => "0",
+            "numFmtId" => "0",
+            "xfId" => "0"
+          })
+        ]),
         Xs.element(
           "tableStyles",
           %{"count" => "0", "defaultPivotStyle" => "PivotStyleLight16", "defaultTableStyle" => "TableStyleMedium9"},
