@@ -23,7 +23,7 @@ defmodule Exceed.Worksheet do
   @doc false
   def to_xml(%__MODULE__{} = worksheet) do
     [
-      Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
+      Xs.declaration(version: "1.0", encoding: "UTF-8"),
       Xs.element(
         "worksheet",
         %{
@@ -54,7 +54,7 @@ defmodule Exceed.Worksheet do
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          Xs.element("cols", []),
+          # Xs.element("cols", []),
           Xs.element("sheetData", sheet_data(worksheet.content)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
