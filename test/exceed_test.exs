@@ -187,5 +187,26 @@ defmodule ExceedTest do
       assert "xl/worksheets/sheet1.xml" in parts
       assert "xl/worksheets/sheet2.xml" in parts
     end
+
+    test "includes each sheet in the workbook relationships", %{filename: filename} do
+      {:ok, relationships} = extract_file(filename, "xl/_rels/workbook.xml.rels")
+
+      assert [style, strings, sheet_1, sheet_2] =
+               Xq.find!(relationships, "/Relationships")
+               |> Xq.all("Relationship")
+
+      assert Xq.attr(style, "Target") == "styles.xml"
+      assert Xq.attr(style, "Id") == "rId1"
+      assert Xq.attr(strings, "Target") == "sharedStrings.xml"
+      assert Xq.attr(strings, "Id") == "rId2"
+
+      assert Xq.attr(sheet_1, "Target") == "worksheets/sheet1.xml"
+      assert Xq.attr(sheet_1, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+      assert Xq.attr(sheet_1, "Id") == "rId3"
+
+      assert Xq.attr(sheet_2, "Target") == "worksheets/sheet2.xml"
+      assert Xq.attr(sheet_2, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+      assert Xq.attr(sheet_2, "Id") == "rId4"
+    end
   end
 end

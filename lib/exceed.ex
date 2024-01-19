@@ -10,7 +10,7 @@ defmodule Exceed do
       {Exceed.Relationships.Default.to_xml(), "_rels/.rels"},
       {Exceed.DocProps.App.to_xml(), "docProps/app.xml"},
       {Exceed.DocProps.Core.to_xml(wb.creator), "docProps/core.xml"},
-      {Exceed.Relationships.Workbook.to_xml(), "xl/_rels/workbook.xml.rels"},
+      {Exceed.Relationships.Workbook.to_xml(wb), "xl/_rels/workbook.xml.rels"},
       {Exceed.Workbook.to_xml(wb), "xl/workbook.xml"},
       {Exceed.Stylesheet.to_xml(), "xl/styles.xml"},
       {Exceed.SharedStrings.to_xml(), "xl/sharedStrings.xml"}
