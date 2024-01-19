@@ -18,4 +18,6 @@ defmodule Exceed.Relationships.Workbook do
       ])
     ]
   end
+
+  def sheet_index(i), do: i + 2
 end

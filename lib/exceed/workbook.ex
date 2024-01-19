@@ -13,6 +13,7 @@ defmodule Exceed.Workbook do
   """
 
   alias Exceed.Worksheet
+  alias XmlStream, as: Xs
 
   @type t() :: %__MODULE__{
           creator: String.t(),
@@ -30,14 +31,20 @@ defmodule Exceed.Workbook do
     do: %{wb | worksheets: [ws | wb.worksheets]}
 
   @doc false
-  def to_xml(%__MODULE__{}) do
+  def to_xml(%__MODULE__{worksheets: worksheets}) do
     [
-      XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
-      XmlStream.element(
+      Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
+      Xs.element(
         "workbook",
         %{"xmlns" => Exceed.Namespace.main(), "xmlns:r" => Exceed.Namespace.relationships()},
         [
-          XmlStream.element("sheets", [])
+          Xs.element(
+            "sheets",
+            for {ws, i} <- Enum.with_index(worksheets, 1) do
+              rel_idx = Exceed.Relationships.Workbook.sheet_index(i)
+              Xs.empty_element("sheet", %{"name" => ws.name, "sheetId" => "#{i}", "r:id" => "rId#{rel_idx}"})
+            end
+          )
         ]
       )
     ]
