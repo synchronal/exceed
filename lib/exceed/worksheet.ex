@@ -35,40 +35,41 @@ defmodule Exceed.Worksheet do
           Xs.element("sheetPr", [Xs.empty_element("pageSetUpPr", %{"fitToPage" => "0"})]),
           Xs.element("sheetViews", [
             Xs.empty_element("sheetView", %{
-              "windowProtection" => "0",
-              "tabSelected" => "0",
-              "showWhiteSpace" => "0",
-              "showOutlineSymbols" => "0",
-              "showFormulas" => "0",
-              "rightToLeft" => "0",
-              "showZeros" => "1",
-              "showRuler" => "1",
-              "showRowColHeaders" => "1",
-              "showGridLines" => "1",
               "defaultGridColor" => "1",
-              "zoomScale" => "100",
+              "rightToLeft" => "0",
+              "showFormulas" => "0",
+              "showGridLines" => "1",
+              "showOutlineSymbols" => "0",
+              "showRowColHeaders" => "1",
+              "showRuler" => "1",
+              "showWhiteSpace" => "0",
+              "showZeros" => "1",
+              "tabSelected" => "0",
+              "windowProtection" => "0",
               "workbookViewId" => "0",
-              "zoomScaleSheetLayoutView" => "0",
+              "zoomScale" => "100",
+              "zoomScaleNormal" => "0",
               "zoomScalePageLayoutView" => "0",
-              "zoomScaleNormal" => "0"
+              "zoomScaleSheetLayoutView" => "0"
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
           Xs.element("cols", []),
           Xs.element("sheetData", sheet_data(worksheet.content)),
+          Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
-            "verticalCentered" => "0",
-            "horizontalCentered" => "0",
+            "gridLines" => "0",
             "headings" => "0",
-            "gridLines" => "0"
+            "horizontalCentered" => "0",
+            "verticalCentered" => "0"
           }),
           Xs.empty_element("pageMargins", %{
-            "right" => "0.75",
-            "left" => "0.75",
             "bottom" => "1.0",
-            "top" => "1.0",
             "footer" => "0.5",
-            "header" => "0.5"
+            "header" => "0.5",
+            "left" => "0.75",
+            "right" => "0.75",
+            "top" => "1.0"
           }),
           Xs.empty_element("pageSetup"),
           Xs.empty_element("headerFooter")
@@ -83,7 +84,7 @@ defmodule Exceed.Worksheet do
         row,
         fn
           item when is_number(item) ->
-            {%{"s" => "5", "t" => "n"}, Xs.element("v", [Xs.content(to_string(item))])}
+            {%{"t" => "n"}, Xs.element("v", [Xs.content(to_string(item))])}
 
           item when is_binary(item) ->
             {%{"t" => "inlineStr"}, Xs.element("is", [Xs.element("t", [Xs.content(item)])])}

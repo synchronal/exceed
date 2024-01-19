@@ -31,6 +31,10 @@ defmodule Exceed.Workbook do
     do: %{wb | worksheets: [ws | wb.worksheets]}
 
   @doc false
+  def finalize(%__MODULE__{worksheets: worksheets} = wb),
+    do: %{wb | worksheets: Enum.reverse(worksheets)}
+
+  @doc false
   def to_xml(%__MODULE__{worksheets: worksheets}) do
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),

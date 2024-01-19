@@ -206,5 +206,10 @@ defmodule ExceedTest do
       assert Xq.attr(sheet_2, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
       assert Xq.attr(sheet_2, "Id") == "rId4"
     end
+
+    test "can be parsed", %{filename: filename} do
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert XlsxReader.sheet_names(wb) == ["First Worksheet", "Second Worksheet"]
+    end
   end
 end

@@ -1,7 +1,7 @@
 defmodule Exceed.ContentType do
   @moduledoc false
 
-  def to_xml do
+  def to_xml(%Exceed.Workbook{worksheets: worksheets}) do
     [
       XmlStream.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       XmlStream.element("Types", %{"xmlns" => Exceed.Namespace.content_types()}, [
@@ -37,6 +37,12 @@ defmodule Exceed.ContentType do
           "ContentType" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml",
           "PartName" => "/xl/sharedStrings.xml"
         })
+        | for {_worksheet, i} <- Enum.with_index(worksheets, 1) do
+            XmlStream.empty_element("Override", %{
+              "ContentType" => "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml",
+              "PartName" => "/xl/worksheets/sheet#{i}.xml"
+            })
+          end
       ])
     ]
   end

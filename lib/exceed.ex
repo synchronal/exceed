@@ -5,8 +5,10 @@ defmodule Exceed do
   """
 
   def stream!(%Exceed.Workbook{} = wb) do
+    wb = Exceed.Workbook.finalize(wb)
+
     [
-      {Exceed.ContentType.to_xml(), "[Content_Types].xml"},
+      {Exceed.ContentType.to_xml(wb), "[Content_Types].xml"},
       {Exceed.Relationships.Default.to_xml(), "_rels/.rels"},
       {Exceed.DocProps.App.to_xml(), "docProps/app.xml"},
       {Exceed.DocProps.Core.to_xml(wb.creator), "docProps/core.xml"},
