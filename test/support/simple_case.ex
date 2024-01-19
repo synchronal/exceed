@@ -13,6 +13,11 @@ defmodule Test.SimpleCase do
     end
   end
 
+  setup [
+    :setup_worksheets,
+    :setup_workbook
+  ]
+
   def tmpdir do
     dir = Path.join([System.tmp_dir!(), "elixir_exceed", Moar.Random.string(4, :base32)])
     File.mkdir_p!(dir)
@@ -37,5 +42,36 @@ defmodule Test.SimpleCase do
     {:ok, handle} = :zip.zip_open(filename, [:memory])
     {:ok, {_zip_name, xml}} = :zip.zip_get(~c"#{part}", handle)
     {:ok, xml}
+  end
+
+  def stream_to_xml(wb),
+    do:
+      wb
+      |> XmlStream.stream!()
+      |> Enum.to_list()
+      |> IO.iodata_to_binary()
+
+  def setup_workbook(%{worksheets: worksheets} = ctx) do
+    case Map.get(ctx, :workbook) do
+      nil ->
+        :ok
+
+      true ->
+        wb =
+          worksheets
+          |> Enum.reduce(Exceed.Workbook.new("me"), &Exceed.Workbook.add_worksheet(&2, &1))
+          |> Exceed.Workbook.finalize()
+
+        [wb: wb]
+    end
+  end
+
+  def setup_worksheets(ctx) do
+    worksheets =
+      for name <- List.wrap(Map.get(ctx, :sheet, [])) do
+        Exceed.Worksheet.new(name, ["Header 1", "Header 2"], [["Value 1", "Value 2"], ["Value 3", "Value 4"]])
+      end
+
+    [worksheets: worksheets]
   end
 end

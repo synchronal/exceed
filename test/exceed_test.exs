@@ -36,45 +36,6 @@ defmodule ExceedTest do
       assert XlsxReader.sheet_names(wb) == []
     end
 
-    test "includes a [Content_Types].xml", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
-      {:ok, content_type} = extract_file(filename, "[Content_Types].xml")
-
-      assert [rels, xml] =
-               Xq.find!(content_type, "/Types")
-               |> Xq.all("Default")
-
-      assert Xq.attr(rels, "Extension") == "rels"
-      assert Xq.attr(rels, "ContentType") == "application/vnd.openxmlformats-package.relationships+xml"
-
-      assert Xq.attr(xml, "Extension") == "xml"
-      assert Xq.attr(xml, "ContentType") == "application/xml"
-
-      assert [wb, app, core, wb_rels, styles, strings] =
-               Xq.find!(content_type, "/Types")
-               |> Xq.all("Override")
-
-      assert Xq.attr(wb, "PartName") == "/xl/workbook.xml"
-      assert Xq.attr(wb, "ContentType") == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"
-
-      assert Xq.attr(app, "PartName") == "/docProps/app.xml"
-      assert Xq.attr(app, "ContentType") == "application/vnd.openxmlformats-officedocument.extended-properties+xml"
-
-      assert Xq.attr(core, "PartName") == "/docProps/core.xml"
-      assert Xq.attr(core, "ContentType") == "application/vnd.openxmlformats-package.core-properties+xml"
-
-      assert Xq.attr(wb_rels, "PartName") == "/xl/_rels/workbook.xml.rels"
-      assert Xq.attr(wb_rels, "ContentType") == "application/vnd.openxmlformats-package.relationships+xml"
-
-      assert Xq.attr(styles, "PartName") == "/xl/styles.xml"
-      assert Xq.attr(styles, "ContentType") == "application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"
-
-      assert Xq.attr(strings, "PartName") == "/xl/sharedStrings.xml"
-
-      assert Xq.attr(strings, "ContentType") ==
-               "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"
-    end
-
     test "includes a _rels/.rels", %{tmpdir: tmpdir} do
       filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
       {:ok, relationships} = extract_file(filename, "_rels/.rels")
