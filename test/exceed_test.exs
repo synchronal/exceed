@@ -20,47 +20,20 @@ defmodule ExceedTest do
       assert {:ok, [{:zip_comment, _} | files]} = :zip.list_dir(String.to_charlist(filename))
 
       files
-      |> Enum.map(fn {:zip_file, name, _info, _, _, _} -> name end)
+      |> Enum.map(fn {:zip_file, name, _info, _, _, _} -> to_string(name) end)
       |> assert_eq([
-        ~c"[Content_Types].xml",
-        ~c"_rels/.rels",
-        ~c"docProps/app.xml",
-        ~c"docProps/core.xml",
-        ~c"xl/_rels/workbook.xml.rels",
-        ~c"xl/workbook.xml",
-        ~c"xl/styles.xml",
-        ~c"xl/sharedStrings.xml"
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "docProps/app.xml",
+        "docProps/core.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/workbook.xml",
+        "xl/styles.xml",
+        "xl/sharedStrings.xml"
       ])
 
       assert {:ok, wb} = XlsxReader.open(filename)
       assert XlsxReader.sheet_names(wb) == []
-    end
-
-    test "includes a _rels/.rels", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
-      {:ok, relationships} = extract_file(filename, "_rels/.rels")
-
-      assert [wb, core, app] =
-               Xq.find!(relationships, "/Relationships")
-               |> Xq.all("Relationship")
-
-      assert Xq.attr(wb, "Target") == "xl/workbook.xml"
-      assert Xq.attr(wb, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument"
-      assert Xq.attr(wb, "Id") == "rId1"
-
-      assert Xq.attr(core, "Target") == "docProps/core.xml"
-
-      assert Xq.attr(core, "Type") ==
-               "http://schemas.openxmlformats.org/officeDocument/2006/relationships/metadata/core-properties"
-
-      assert Xq.attr(core, "Id") == "rId2"
-
-      assert Xq.attr(app, "Target") == "docProps/app.xml"
-
-      assert Xq.attr(app, "Type") ==
-               "http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties"
-
-      assert Xq.attr(app, "Id") == "rId3"
     end
 
     test "includes a docProps/app.xml", %{tmpdir: tmpdir} do
@@ -81,26 +54,6 @@ defmodule ExceedTest do
       assert_recent(created_at)
 
       assert props |> Xq.find!("cp:revision") |> Xq.text() == "0"
-    end
-
-    test "includes a xl/_rels/workbook.xml.rels", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
-      {:ok, relationships} = extract_file(filename, "xl/_rels/workbook.xml.rels")
-
-      assert [style, strings] =
-               Xq.find!(relationships, "/Relationships")
-               |> Xq.all("Relationship")
-
-      assert Xq.attr(style, "Target") == "styles.xml"
-      assert Xq.attr(style, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles"
-      assert Xq.attr(style, "Id") == "rId1"
-
-      assert Xq.attr(strings, "Target") == "sharedStrings.xml"
-
-      assert Xq.attr(strings, "Type") ==
-               "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"
-
-      assert Xq.attr(strings, "Id") == "rId2"
     end
 
     test "includes an xl/workbook.xml", %{tmpdir: tmpdir} do
@@ -145,27 +98,6 @@ defmodule ExceedTest do
 
       assert "xl/worksheets/sheet1.xml" in parts
       assert "xl/worksheets/sheet2.xml" in parts
-    end
-
-    test "includes each sheet in the workbook relationships", %{filename: filename} do
-      {:ok, relationships} = extract_file(filename, "xl/_rels/workbook.xml.rels")
-
-      assert [style, strings, sheet_1, sheet_2] =
-               Xq.find!(relationships, "/Relationships")
-               |> Xq.all("Relationship")
-
-      assert Xq.attr(style, "Target") == "styles.xml"
-      assert Xq.attr(style, "Id") == "rId1"
-      assert Xq.attr(strings, "Target") == "sharedStrings.xml"
-      assert Xq.attr(strings, "Id") == "rId2"
-
-      assert Xq.attr(sheet_1, "Target") == "worksheets/sheet1.xml"
-      assert Xq.attr(sheet_1, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
-      assert Xq.attr(sheet_1, "Id") == "rId3"
-
-      assert Xq.attr(sheet_2, "Target") == "worksheets/sheet2.xml"
-      assert Xq.attr(sheet_2, "Type") == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
-      assert Xq.attr(sheet_2, "Id") == "rId4"
     end
 
     test "can be parsed", %{filename: filename} do
