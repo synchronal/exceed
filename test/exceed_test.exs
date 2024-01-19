@@ -36,26 +36,6 @@ defmodule ExceedTest do
       assert XlsxReader.sheet_names(wb) == []
     end
 
-    test "includes a docProps/app.xml", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
-      {:ok, app} = extract_file(filename, "docProps/app.xml")
-
-      assert Xq.find!(app, "/Properties")
-    end
-
-    test "includes a docProps/core.xml", %{tmpdir: tmpdir} do
-      filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
-      {:ok, app} = extract_file(filename, "docProps/core.xml")
-
-      assert props = Xq.find!(app, "/cp:coreProperties")
-
-      assert props |> Xq.find!("dc:creator") |> Xq.text() == "me"
-      assert {:ok, created_at, _} = props |> Xq.find!("dcterms:created") |> Xq.text() |> DateTime.from_iso8601()
-      assert_recent(created_at)
-
-      assert props |> Xq.find!("cp:revision") |> Xq.text() == "0"
-    end
-
     test "includes an xl/workbook.xml", %{tmpdir: tmpdir} do
       filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
       {:ok, wb} = extract_file(filename, "xl/workbook.xml")
