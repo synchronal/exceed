@@ -161,18 +161,16 @@ defmodule ExceedTest do
       filename =
         Exceed.Workbook.new("me")
         |> Exceed.Workbook.add_worksheet(
-          Exceed.Worksheet.new(
-            "First Worksheet",
-            ["Header A", "Header B", "Header C"],
-            [["Content A1", "Content B1", "Content C1"], ["Content A2", "Content B2", "Content C2"]]
-          )
+          Exceed.Worksheet.new("First Worksheet", ["Header A", "Header B", "Header C"], [
+            ["Content A1", "Content B1", "Content C1"],
+            ["Content A2", "Content B2", "Content C2"]
+          ])
         )
         |> Exceed.Workbook.add_worksheet(
-          Exceed.Worksheet.new(
-            "Second Worksheet",
-            ["Header AA", "Header BB"],
-            [["Content AA1", "Content BB1"], ["Content AA2", "Content BB2"]]
-          )
+          Exceed.Worksheet.new("Second Worksheet", ["Header AA", "Header BB"], [
+            ["Content AA1", "Content BB1"],
+            ["Content AA2", "Content BB2"]
+          ])
         )
         |> stream_to_file(tmpdir)
 
