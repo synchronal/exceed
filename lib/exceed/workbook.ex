@@ -1,5 +1,6 @@
 defmodule Exceed.Workbook do
   # @related [tests](test/exceed/workbook_test.exs)
+
   @moduledoc """
   The top-level structure for collecting structures that will be converted to an
   Excel file.
@@ -8,7 +9,7 @@ defmodule Exceed.Workbook do
 
   ``` elixir
   iex> Exceed.Workbook.new("creator name")
-  %Exceed.Workbook{creator: "creator name", worksheets: []}
+  #Exceed.Workbook<sheets: []>
   ```
   """
 
@@ -52,5 +53,14 @@ defmodule Exceed.Workbook do
         ]
       )
     ]
+  end
+
+  defimpl Inspect do
+    import Inspect.Algebra
+
+    def inspect(wb, opts) do
+      worksheet_names = Enum.map(wb.worksheets, & &1.name)
+      concat(["#Exceed.Workbook<sheets: ", Inspect.List.inspect(worksheet_names, opts), ">"])
+    end
   end
 end

@@ -36,4 +36,17 @@ defmodule Exceed.WorkbookTest do
       assert Xq.attr(sheet3, "r:id") == "rId5"
     end
   end
+
+  describe "inspect" do
+    @describetag :workbook
+
+    test "shows empty sheets", %{wb: wb} do
+      assert inspect(wb) == "#Exceed.Workbook<sheets: []>"
+    end
+
+    @tag sheet: ["Uno", "Dos", "Tres"]
+    test "shows sheet names when present", %{wb: wb} do
+      assert inspect(wb) == "#Exceed.Workbook<sheets: [\"Uno\", \"Dos\", \"Tres\"]>"
+    end
+  end
 end

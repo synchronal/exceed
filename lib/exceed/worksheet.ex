@@ -10,10 +10,12 @@ defmodule Exceed.Worksheet do
   ``` elixir
   iex> headers = ["header 1"]
   iex> rows = [["row 1"], ["row 2"]]
-  iex> %Worksheet{} = ws = Exceed.Worksheet.new("Sheet Name", headers, rows)
+  iex> ws = Exceed.Worksheet.new("Sheet Name", headers, rows)
+  #Exceed.Worksheet<name: "Sheet Name", ...>
   ...>
   iex> Exceed.Workbook.new("creator name")
   ...>  |> Exceed.Workbook.add_worksheet(ws)
+  #Exceed.Workbook<sheets: ["Sheet Name"]>
   ```
 
   ## Sheet content
@@ -74,6 +76,7 @@ defmodule Exceed.Worksheet do
           opts: spreadsheet_options()
         }
 
+  @derive {Inspect, only: [:name]}
   defstruct ~w(
     content
     headers
