@@ -4,6 +4,8 @@ defmodule Exceed.WorksheetTest do
   alias Exceed.Worksheet
   alias XmlQuery, as: Xq
 
+  doctest Exceed.Worksheet
+
   setup do
     stream =
       Stream.unfold(1, fn
@@ -110,7 +112,7 @@ defmodule Exceed.WorksheetTest do
 
     test "can set the column width padding",
          %{headers: headers, stream: stream} do
-      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0), col_padding: 2.34)
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0), cols: [padding: 2.34])
       xml = Worksheet.to_xml(ws) |> stream_to_xml()
 
       [header1, header2, header3] = headers

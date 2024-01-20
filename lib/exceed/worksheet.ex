@@ -1,10 +1,57 @@
 defmodule Exceed.Worksheet do
   # @related [tests](test/exceed/worksheet_test.exs)
+
+  @moduledoc """
+  Worksheets represent the tabular data to be included in an Excel sheet, in
+  addition to metadata about the sheet and how it should be rendered.
+
+  ## Examples
+
+  ``` elixir
+  iex> headers = ["header 1"]
+  iex> rows = [["row 1"], ["row 2"]]
+  iex> %Worksheet{} = ws = Exceed.Worksheet.new("Sheet Name", headers, rows)
+  ...>
+  iex> Exceed.Workbook.new("creator name")
+  ...>  |> Exceed.Workbook.add_worksheet(ws)
+  ```
+
+  ## Sheet content
+
+  Rows are represented by an enumerable where each row will be resolved to a
+  list of cells. In the above example, a list of lists is provided.
+  Alternatively, a stream may be provided.
+
+  ``` elixir
+  iex> stream = Stream.repeatedly(fn -> [:rand.uniform(), :rand.uniform()] end)
+  ...>
+  iex> %Worksheet{} =
+  ...>     Exceed.Worksheet.new("Sheet Name", ["Random 1", "Random 2"], stream)
+  ```
+
+  ## Options
+
+  When initializing a worksheet, default options may be overridded by providing
+  an options via the optional fourth argument to `Exceed.Worksheet.new/4`.
+
+  ``` elixir
+  iex> headers = ["header 1"]
+  iex> rows = [["row 1"], ["row 2"]]
+  iex> opts = [cols: [padding: 6.325]]
+  iex> %Worksheet{} = Exceed.Worksheet.new("Sheet Name", headers, rows, opts)
+  ```
+
+  - Column padding - `cols: [padding: value]` - default: `4.25` - extra space
+    given to each column, in addition to whatever is determined from the
+    headers or the specified widths.
+
+  """
   alias XmlStream, as: Xs
 
   @type headers() :: [String.t()] | nil
   @type spreadsheet_options() :: [spreadsheet_option()]
-  @type spreadsheet_option() :: {:col_padding, float()}
+  @type spreadsheet_option() :: {:cols, [columns_option()]}
+  @type columns_option() :: {:padding, float()}
 
   @type t() :: %__MODULE__{
           content: Enum.t(),
@@ -20,6 +67,18 @@ defmodule Exceed.Worksheet do
     opts
   )a
 
+  @doc """
+  Initialize a new worksheet to be added to a workbook. See `Exceed.Workbook.add_worksheet/2`.
+
+  ## Examples
+
+  ``` elixir
+  iex> headers = ["header 1"]
+  iex> rows = [["row 1"], ["row 2"]]
+  iex> opts = [cols: [padding: 6.325]]
+  iex> %Worksheet{} = Exceed.Worksheet.new("Sheet Name", headers, rows, opts)
+  ```
+  """
   @spec new(String.t(), headers(), Enum.t(), keyword()) :: t()
   def new(name, headers, content, opts \\ [])
 
@@ -31,6 +90,10 @@ defmodule Exceed.Worksheet do
 
   @doc false
   def to_xml(%__MODULE__{headers: headers, content: content, opts: opts}) do
+    %{
+      col_padding: col_padding
+    } = normalize_opts(opts)
+
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8"),
       Xs.element(
@@ -63,7 +126,7 @@ defmodule Exceed.Worksheet do
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          cols(headers, content, opts),
+          cols(headers, content, col_padding),
           Xs.element("sheetData", sheet_data(content, headers)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
@@ -89,15 +152,13 @@ defmodule Exceed.Worksheet do
 
   # # #
 
-  defp cols(nil, content, opts) do
+  defp cols(nil, content, padding) do
     case content |> Stream.take(1) |> Enum.to_list() do
-      [headers] -> cols(headers, content, opts)
+      [headers] -> cols(headers, content, padding)
     end
   end
 
-  defp cols(headers, _content, opts) do
-    padding = Keyword.get(opts, :col_padding, 4.25)
-
+  defp cols(headers, _content, padding) do
     Xs.element(
       "cols",
       for {header, i} <- Enum.with_index(headers, 1) do
@@ -105,6 +166,12 @@ defmodule Exceed.Worksheet do
         Xs.empty_element("col", %{"min" => i, "max" => i, "width" => width})
       end
     )
+  end
+
+  defp normalize_opts(opts) do
+    %{
+      col_padding: get_in(opts, [:cols, :padding]) || 4.25
+    }
   end
 
   defp sheet_data(stream, headers) do
