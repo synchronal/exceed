@@ -21,6 +21,17 @@ defmodule Exceed.WorksheetTest do
       assert %Worksheet{name: "sheet", headers: ^headers, content: ^stream, opts: []} =
                Worksheet.new("sheet", headers, stream)
     end
+
+    test "can set headers to nil", %{stream: stream} do
+      assert %Worksheet{name: "sheet", headers: nil, content: ^stream, opts: []} =
+               Worksheet.new("sheet", nil, stream)
+    end
+
+    test "raises when headers are set to an empty list", %{stream: stream} do
+      assert_raise Exceed.Error, "Worksheet headers must be a list of items or nil", fn ->
+        Worksheet.new("sheet", [], stream)
+      end
+    end
   end
 
   describe "to_xml" do

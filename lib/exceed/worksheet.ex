@@ -21,7 +21,12 @@ defmodule Exceed.Worksheet do
   )a
 
   @spec new(String.t(), headers(), Enum.t(), keyword()) :: t()
-  def new(name, headers, content, opts \\ []),
+  def new(name, headers, content, opts \\ [])
+
+  def new(_name, [], _content, _opts),
+    do: raise(Exceed.Error, "Worksheet headers must be a list of items or nil")
+
+  def new(name, headers, content, opts),
     do: __struct__(name: name, headers: headers, content: content, opts: opts)
 
   @doc false
