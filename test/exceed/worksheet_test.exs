@@ -126,6 +126,16 @@ defmodule Exceed.WorksheetTest do
       assert String.length(header3) == 6
       assert Xq.attr(col3, "width") == "8.34"
     end
+
+    test "uses the first row of the stream to set column width when headers are not given", %{stream: stream} do
+      ws = Worksheet.new("sheet", nil, Enum.take(stream, 2))
+      xml = Worksheet.to_xml(ws) |> stream_to_xml()
+
+      assert [col1, col2, col3] = Xq.all(xml, "/worksheet/cols/col")
+      assert Xq.attr(col1, "width") == "16.25"
+      assert Xq.attr(col2, "width") == "5.25"
+      assert Xq.attr(col3, "width") == "7.25"
+    end
   end
 
   # # #
