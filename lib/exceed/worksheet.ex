@@ -58,7 +58,7 @@ defmodule Exceed.Worksheet do
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          Xs.element("cols", cols(headers, opts)),
+          cols(headers, opts),
           Xs.element("sheetData", sheet_data(content, headers)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
@@ -84,13 +84,18 @@ defmodule Exceed.Worksheet do
 
   # # #
 
+  defp cols(nil, _), do: []
+
   defp cols(headers, opts) do
     padding = Keyword.get(opts, :col_padding, 4.25)
 
-    for {header, i} <- Enum.with_index(headers, 1) do
-      width = String.length(header) + padding
-      Xs.empty_element("col", %{"min" => i, "max" => i, "width" => width})
-    end
+    Xs.element(
+      "cols",
+      for {header, i} <- Enum.with_index(headers, 1) do
+        width = String.length(header) + padding
+        Xs.empty_element("col", %{"min" => i, "max" => i, "width" => width})
+      end
+    )
   end
 
   defp sheet_data(stream, headers) do
@@ -132,6 +137,6 @@ defmodule Exceed.Worksheet do
 
   defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
 
-  defp prepend_headers(stream, headers),
-    do: Stream.concat([headers], stream)
+  defp prepend_headers(stream, nil), do: stream
+  defp prepend_headers(stream, headers), do: Stream.concat([headers], stream)
 end

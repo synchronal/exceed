@@ -57,6 +57,21 @@ defmodule Exceed.WorksheetTest do
       ])
     end
 
+    test "can generate rows when no headers are given", %{stream: stream} do
+      ws = Worksheet.new("sheet", nil, Enum.take(stream, 1))
+      xml = Worksheet.to_xml(ws) |> stream_to_xml()
+
+      assert [row_1] = Xq.all(xml, "/worksheet/sheetData/row")
+
+      row_1
+      |> extract_cells()
+      |> assert_eq([
+        %{type: "inlineStr", text: "row 1 cell 1", children: "is/t", cell: "A1"},
+        %{type: "n", text: "1", children: "v", cell: "B1"},
+        %{type: "n", text: "1.5", children: "v", cell: "C1"}
+      ])
+    end
+
     test "configures each column as wide as the header plus some default padding",
          %{headers: headers, stream: stream} do
       ws = Worksheet.new("sheet", headers, Enum.take(stream, 0))
