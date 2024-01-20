@@ -1,6 +1,7 @@
 defmodule Exceed.MixProject do
   use Mix.Project
 
+  @scm_url "https://github.com/synchronal/exceed"
   @version "0.1.0"
 
   def application,
@@ -17,10 +18,15 @@ defmodule Exceed.MixProject do
     do: [
       app: :exceed,
       deps: deps(),
+      description: "A high-level stream-oriented MS Excel OpenXML (`.xlsx`) generator",
       dialyzer: dialyzer(),
       docs: docs(),
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
+      homepage_url: @scm_url,
+      name: "Exceed",
+      package: package(),
+      source_url: @scm_url,
       start_permanent: Mix.env() == :prod,
       version: @version
     ]
@@ -55,4 +61,11 @@ defmodule Exceed.MixProject do
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
+
+  defp package,
+    do: [
+      licenses: ["MIT"],
+      maintainers: ["synchronal.dev", "Erik Hanson", "Eric Saxby"],
+      links: %{"GitHub" => @scm_url}
+    ]
 end
