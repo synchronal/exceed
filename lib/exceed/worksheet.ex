@@ -29,7 +29,7 @@ defmodule Exceed.Worksheet do
   ...>     Exceed.Worksheet.new("Sheet Name", ["Random 1", "Random 2"], stream)
   ```
 
-  ## Options
+  ## Sheet options
 
   When initializing a worksheet, default options may be overridded by providing
   an options via the optional fourth argument to `Exceed.Worksheet.new/4`.
@@ -44,6 +44,18 @@ defmodule Exceed.Worksheet do
   - Column padding - `cols: [padding: value]` - default: `4.25` - extra space
     given to each column, in addition to whatever is determined from the
     headers or the specified widths.
+  - Column width - `cols: [widths: %{1 => 15.75}]` - specify the exact width
+    of specific columns as a map of 1-indexed column indexes to width as a
+    float. When not provided, this is automatically determined from the
+    character length of the relevant header cell, or from the first row when
+    no headers are provided.
+
+  ### Column widths
+
+  1. Note that the actual rendered width of a cell depends on the character
+    width of the applied font, on the computer used to open the spreadsheet (see
+    the [OpenXML.Spreadsheet Column docs](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.column?view=openxml-3.0.1)
+    for more info).
 
   """
   alias XmlStream, as: Xs
@@ -51,7 +63,9 @@ defmodule Exceed.Worksheet do
   @type headers() :: [String.t()] | nil
   @type spreadsheet_options() :: [spreadsheet_option()]
   @type spreadsheet_option() :: {:cols, [columns_option()]}
-  @type columns_option() :: {:padding, float()}
+  @type columns_option() ::
+          {:padding, float()}
+          | {:widths, %{integer() => float()}}
 
   @type t() :: %__MODULE__{
           content: Enum.t(),
@@ -69,6 +83,7 @@ defmodule Exceed.Worksheet do
 
   @doc """
   Initialize a new worksheet to be added to a workbook. See `Exceed.Workbook.add_worksheet/2`.
+  For worksheet options, see the module docs for `m:Exceed.Worksheet#module-sheet-options`.
 
   ## Examples
 
@@ -91,7 +106,8 @@ defmodule Exceed.Worksheet do
   @doc false
   def to_xml(%__MODULE__{headers: headers, content: content, opts: opts}) do
     %{
-      col_padding: col_padding
+      col_padding: col_padding,
+      col_widths: col_widths
     } = normalize_opts(opts)
 
     [
@@ -126,7 +142,7 @@ defmodule Exceed.Worksheet do
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          cols(headers, content, col_padding),
+          cols(headers, content, col_padding, col_widths),
           Xs.element("sheetData", sheet_data(content, headers)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
@@ -152,17 +168,17 @@ defmodule Exceed.Worksheet do
 
   # # #
 
-  defp cols(nil, content, padding) do
+  defp cols(nil, content, padding, widths) do
     case content |> Stream.take(1) |> Enum.to_list() do
-      [headers] -> cols(headers, content, padding)
+      [headers] -> cols(headers, content, padding, widths)
     end
   end
 
-  defp cols(headers, _content, padding) do
+  defp cols(headers, _content, padding, widths) do
     Xs.element(
       "cols",
       for {header, i} <- Enum.with_index(headers, 1) do
-        width = String.length(to_string(header)) + padding
+        width = Map.get(widths, i, String.length(to_string(header)) + padding)
         Xs.empty_element("col", %{"min" => i, "max" => i, "width" => width})
       end
     )
@@ -170,7 +186,8 @@ defmodule Exceed.Worksheet do
 
   defp normalize_opts(opts) do
     %{
-      col_padding: get_in(opts, [:cols, :padding]) || 4.25
+      col_padding: get_in(opts, [:cols, :padding]) || 4.25,
+      col_widths: get_in(opts, [:cols, :widths]) || %{}
     }
   end
 
