@@ -237,42 +237,42 @@ jobs:
       - name: Audit deps
         run: mix deps.audit
         working-directory: .
-  # publish:
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - pair:
-  #             elixir: 1.16.0
-  #             otp: 26.2.1
-  #   name: Publish to Hex
-  #   if: github.ref == 'refs/heads/main'
-  #   needs:
-  #     - test
-  #     - credo_and_dialyxir
-  #     - audit
-  #   runs-on: ubuntu-20.04
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Set up Elixir
-  #       id: beam
-  #       uses: erlef/setup-beam@v1
-  #       with:
-  #         elixir-version: ${{ matrix.pair.elixir }}
-  #         otp-version: ${{ matrix.pair.otp }}
-  #         version-type: strict
-  #     - name: Cache deps
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: deps
-  #         key: ${{ runner.os }}-dev-deps-v1-${{ hashFiles('**/mix.lock') }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
-  #     - name: Cache _build
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: _build
-  #         key: ${{ runner.os }}-dev-build-v1-${{ hashFiles('**/mix.lock') }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
-  #     - name: Publish to Hex
-  #       uses: synchronal/hex-publish-action@v3
-  #       with:
-  #         name: exceed
-  #         key: ${{ secrets.HEX_PM_KEY }}
+  publish:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pair:
+              elixir: 1.16.0
+              otp: 26.2.1
+    name: Publish to Hex
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - test
+      - credo_and_dialyxir
+      - audit
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Elixir
+        id: beam
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: ${{ matrix.pair.elixir }}
+          otp-version: ${{ matrix.pair.otp }}
+          version-type: strict
+      - name: Cache deps
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-dev-deps-v1-${{ hashFiles('**/mix.lock') }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
+      - name: Cache _build
+        uses: actions/cache@v3
+        with:
+          path: _build
+          key: ${{ runner.os }}-dev-build-v1-${{ hashFiles('**/mix.lock') }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
+      - name: Publish to Hex
+        uses: synchronal/hex-publish-action@v3
+        with:
+          name: exceed
+          key: ${{ secrets.HEX_PM_KEY }}
