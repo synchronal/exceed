@@ -43,7 +43,7 @@ defmodule Exceed.MixProject do
       {:moar, "~> 1.50", only: :test},
       {:xlsx_reader, "~> 0.8.1", only: :test},
       {:xml_query, "~> 0.2", only: :test},
-      {:xml_stream, "~> 0.2.0", github: "sax/xml_stream", branch: "opaque-type"},
+      {:xml_stream, "~> 0.2.0"},
       {:zstream, "~> 0.6.4"}
     ]
 
