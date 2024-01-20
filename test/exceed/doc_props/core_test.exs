@@ -12,7 +12,7 @@ defmodule Exceed.DocProps.CoreTest do
       assert Xq.text(tag) == "creator name"
     end
 
-    test "includes a creator at tag" do
+    test "includes a created at tag" do
       xml = Core.to_xml("creator name") |> stream_to_xml()
       assert tag = Xq.find!(xml, "/cp:coreProperties/dcterms:created")
 
@@ -21,11 +21,13 @@ defmodule Exceed.DocProps.CoreTest do
       assert_recent(created_at)
     end
 
-    test "includes a revision tag" do
+    test "includes a modified at tag" do
       xml = Core.to_xml("creator name") |> stream_to_xml()
-      assert tag = Xq.find!(xml, "/cp:coreProperties/cp:revision")
+      assert tag = Xq.find!(xml, "/cp:coreProperties/dcterms:modified")
 
-      assert Xq.text(tag) == "0"
+      assert Xq.attr(tag, "xsi:type") == "dcterms:W3CDTF"
+      assert {:ok, created_at, 0} = Xq.text(tag) |> DateTime.from_iso8601()
+      assert_recent(created_at)
     end
   end
 end
