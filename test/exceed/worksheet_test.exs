@@ -81,6 +81,25 @@ defmodule Exceed.WorksheetTest do
       assert Xq.attr(col3, "max") == "3"
       assert Xq.attr(col3, "width") == "10.25"
     end
+
+    test "can set the column width padding",
+         %{headers: headers, stream: stream} do
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0), col_padding: 2.34)
+      xml = Worksheet.to_xml(ws) |> stream_to_xml()
+
+      [header1, header2, header3] = headers
+
+      assert [col1, col2, col3] = Xq.all(xml, "/worksheet/cols/col")
+
+      assert String.length(header1) == 14
+      assert Xq.attr(col1, "width") == "16.34"
+
+      assert String.length(header2) == 8
+      assert Xq.attr(col2, "width") == "10.34"
+
+      assert String.length(header3) == 6
+      assert Xq.attr(col3, "width") == "8.34"
+    end
   end
 
   # # #

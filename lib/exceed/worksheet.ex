@@ -3,11 +3,14 @@ defmodule Exceed.Worksheet do
   alias XmlStream, as: Xs
 
   @type headers() :: [String.t()] | nil
+  @type spreadsheet_options() :: [spreadsheet_option()]
+  @type spreadsheet_option() :: {:col_padding, float()}
+
   @type t() :: %__MODULE__{
           content: Enum.t(),
           headers: headers(),
           name: String.t(),
-          opts: keyword()
+          opts: spreadsheet_options()
         }
 
   defstruct ~w(
@@ -22,7 +25,7 @@ defmodule Exceed.Worksheet do
     do: __struct__(name: name, headers: headers, content: content, opts: opts)
 
   @doc false
-  def to_xml(%__MODULE__{} = worksheet) do
+  def to_xml(%__MODULE__{headers: headers, content: content, opts: opts}) do
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8"),
       Xs.element(
@@ -55,8 +58,8 @@ defmodule Exceed.Worksheet do
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          Xs.element("cols", cols(worksheet.headers)),
-          Xs.element("sheetData", sheet_data(worksheet.content, worksheet.headers)),
+          Xs.element("cols", cols(headers, opts)),
+          Xs.element("sheetData", sheet_data(content, headers)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
             "gridLines" => "0",
@@ -81,9 +84,11 @@ defmodule Exceed.Worksheet do
 
   # # #
 
-  defp cols(headers) do
+  defp cols(headers, opts) do
+    padding = Keyword.get(opts, :col_padding, 4.25)
+
     for {header, i} <- Enum.with_index(headers, 1) do
-      width = String.length(header) + 4.25
+      width = String.length(header) + padding
       Xs.empty_element("col", %{"min" => i, "max" => i, "width" => width})
     end
   end
