@@ -1,4 +1,5 @@
 defmodule Exceed.Worksheet do
+  # @related [tests](test/exceed/worksheet_test.exs)
   alias XmlStream, as: Xs
 
   @type headers() :: [String.t()] | nil
@@ -55,7 +56,7 @@ defmodule Exceed.Worksheet do
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
           # Xs.element("cols", []),
-          Xs.element("sheetData", sheet_data(worksheet.content)),
+          Xs.element("sheetData", sheet_data(worksheet.content, worksheet.headers)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
             "gridLines" => "0",
@@ -78,8 +79,10 @@ defmodule Exceed.Worksheet do
     ]
   end
 
-  defp sheet_data(stream) do
-    Stream.transform(stream, 1, fn row, row_idx ->
+  defp sheet_data(stream, headers) do
+    stream
+    |> prepend_headers(headers)
+    |> Stream.transform(1, fn row, row_idx ->
       row(
         row,
         fn
@@ -114,4 +117,7 @@ defmodule Exceed.Worksheet do
   defp next_alphabet([x | rest]) when x == 90, do: [65 | next_alphabet(rest)]
 
   defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
+
+  defp prepend_headers(stream, headers),
+    do: Stream.concat([headers], stream)
 end
