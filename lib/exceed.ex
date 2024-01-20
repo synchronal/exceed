@@ -1,9 +1,31 @@
 defmodule Exceed do
   # @related [tests](test/exceed_test.exs)
   @moduledoc """
-  `Exceed` is a high-level stream-oriented library for generating Excel files.
+  Exceed is a high-level stream-oriented library for generating Excel files.
+  It may be useful when generating spreadsheets from data sets that exceed
+  available memory—or exceed the memory that one wishes to devote to
+  generating Excel files.
+
+  ## Examples
+
+  ``` elixir
+  iex> rows = Stream.repeatedly(fn -> [:rand.uniform(), :rand.uniform()] end)
+  iex> stream = Exceed.Workbook.new("creator name")
+  ...>   |> Exceed.Workbook.add_worksheet(
+  ...>     Exceed.Worksheet.new("Sheet", ["header a", "header b"], Enum.take(rows, 10)))
+  ...>   |> Exceed.stream!()
+  ...>
+  iex> zip = stream |> Enum.to_list() |> IO.iodata_to_binary()
+  iex> {:ok, package} = XlsxReader.open(zip, [source: :binary])
+  iex> XlsxReader.sheet_names(package)
+  ["Sheet"]
+  ```
   """
 
+  @doc """
+  Convert an `Exceed.Workbook` to a stream.
+  """
+  @spec stream!(Exceed.Workbook.t()) :: Enum.t()
   def stream!(%Exceed.Workbook{} = wb) do
     wb = Exceed.Workbook.finalize(wb)
 

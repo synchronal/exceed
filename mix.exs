@@ -18,6 +18,7 @@ defmodule Exceed.MixProject do
       app: :exceed,
       deps: deps(),
       dialyzer: dialyzer(),
+      docs: docs(),
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -44,6 +45,12 @@ defmodule Exceed.MixProject do
     do: [
       plt_add_apps: [:ex_unit, :mix],
       plt_add_deps: :app_tree
+    ]
+
+  defp docs,
+    do: [
+      main: "readme",
+      extras: ["README.md", "LICENSE.md"]
     ]
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]

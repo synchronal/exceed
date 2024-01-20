@@ -11,6 +11,16 @@ defmodule Exceed.Workbook do
   iex> Exceed.Workbook.new("creator name")
   #Exceed.Workbook<sheets: []>
   ```
+
+  ``` elixir
+  iex> headers = ["header 1"]
+  iex> rows = Stream.repeatedly(fn -> [:rand.uniform(), :rand.uniform()] end)
+  iex> ws = Exceed.Worksheet.new("Sheet Name", headers, rows)
+  ...>
+  iex> Exceed.Workbook.new("creator name")
+  ...>  |> Exceed.Workbook.add_worksheet(ws)
+  #Exceed.Workbook<sheets: ["Sheet Name"]>
+  ```
   """
 
   alias Exceed.Worksheet
@@ -26,8 +36,16 @@ defmodule Exceed.Workbook do
     worksheets: []
   ]
 
+  @doc """
+  Initialize a new workbook with a creator name.
+  """
+  @spec new(String.t()) :: t()
   def new(creator), do: __struct__(creator: creator)
 
+  @doc """
+  Adds an `Exceed.Worksheet` to the workbook.
+  """
+  @spec add_worksheet(t(), Exceed.Worksheet.t()) :: t()
   def add_worksheet(%__MODULE__{} = wb, %Worksheet{} = ws),
     do: %{wb | worksheets: [ws | wb.worksheets]}
 
