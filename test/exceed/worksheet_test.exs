@@ -56,6 +56,31 @@ defmodule Exceed.WorksheetTest do
         %{type: "n", text: "3.0", children: "v", cell: "C3"}
       ])
     end
+
+    test "configures each column as wide as the header plus some default padding",
+         %{headers: headers, stream: stream} do
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0))
+      xml = Worksheet.to_xml(ws) |> stream_to_xml()
+
+      [header1, header2, header3] = headers
+
+      assert [col1, col2, col3] = Xq.all(xml, "/worksheet/cols/col")
+
+      assert String.length(header1) == 14
+      assert Xq.attr(col1, "min") == "1"
+      assert Xq.attr(col1, "max") == "1"
+      assert Xq.attr(col1, "width") == "18.25"
+
+      assert String.length(header2) == 8
+      assert Xq.attr(col2, "min") == "2"
+      assert Xq.attr(col2, "max") == "2"
+      assert Xq.attr(col2, "width") == "12.25"
+
+      assert String.length(header3) == 6
+      assert Xq.attr(col3, "min") == "3"
+      assert Xq.attr(col3, "max") == "3"
+      assert Xq.attr(col3, "width") == "10.25"
+    end
   end
 
   # # #

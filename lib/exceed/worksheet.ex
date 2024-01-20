@@ -55,7 +55,7 @@ defmodule Exceed.Worksheet do
             })
           ]),
           Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          # Xs.element("cols", []),
+          Xs.element("cols", cols(worksheet.headers)),
           Xs.element("sheetData", sheet_data(worksheet.content, worksheet.headers)),
           Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
           Xs.empty_element("printOptions", %{
@@ -77,6 +77,15 @@ defmodule Exceed.Worksheet do
         ]
       )
     ]
+  end
+
+  # # #
+
+  defp cols(headers) do
+    for {header, i} <- Enum.with_index(headers, 1) do
+      width = String.length(header) + 4.25
+      Xs.empty_element("col", %{"min" => i, "max" => i, "width" => width})
+    end
   end
 
   defp sheet_data(stream, headers) do
