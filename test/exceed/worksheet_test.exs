@@ -151,7 +151,6 @@ defmodule Exceed.WorksheetTest do
       assert Xq.attr(col3, "width") == "1.1"
     end
 
-    @tag extra_columns: [{"date time"}]
     test "converts datetimes to excel timestamp floats for times after 1900" do
       ws = %Worksheet{
         name: "sheet",
@@ -173,6 +172,30 @@ defmodule Exceed.WorksheetTest do
       |> extract_cells()
       |> assert_eq([
         %{type: "inlineStr", text: "1899-12-31T00:00:00Z", children: "is/t", cell: "A2"}
+      ])
+    end
+
+    test "converts dates to excel timestamp floats for times after 1900" do
+      ws = %Worksheet{
+        name: "sheet",
+        headers: nil,
+        content: [[~D(2024-01-01)], [~D(1899-12-31)]],
+        opts: []
+      }
+
+      xml = Worksheet.to_xml(ws) |> stream_to_xml()
+      assert [row_1, row_2] = Xq.all(xml, "/worksheet/sheetData/row")
+
+      row_1
+      |> extract_cells()
+      |> assert_eq([
+        %{type: "n", text: "45292.0", children: "v", cell: "A1"}
+      ])
+
+      row_2
+      |> extract_cells()
+      |> assert_eq([
+        %{type: "inlineStr", text: "1899-12-31", children: "is/t", cell: "A2"}
       ])
     end
   end

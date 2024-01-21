@@ -181,6 +181,9 @@ defmodule Exceed.Worksheet do
   defp cell_attrs_and_body(%DateTime{} = item),
     do: cell_attrs_and_body(Util.to_excel_datetime(item))
 
+  defp cell_attrs_and_body(%Date{} = item),
+    do: cell_attrs_and_body(Util.to_excel_datetime(item))
+
   defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
 
   defp cols(nil, content, padding, widths) do
