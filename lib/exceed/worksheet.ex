@@ -60,6 +60,7 @@ defmodule Exceed.Worksheet do
     for more info).
 
   """
+  alias Exceed.Util
   alias XmlStream, as: Xs
 
   @type headers() :: [String.t()] | nil
@@ -171,6 +172,17 @@ defmodule Exceed.Worksheet do
 
   # # #
 
+  defp cell_attrs_and_body(item) when is_number(item),
+    do: {%{"t" => "n"}, Xs.element("v", [Xs.content(to_string(item))])}
+
+  defp cell_attrs_and_body(item) when is_binary(item),
+    do: {%{"t" => "inlineStr"}, Xs.element("is", [Xs.element("t", [Xs.content(item)])])}
+
+  defp cell_attrs_and_body(%DateTime{} = item),
+    do: cell_attrs_and_body(Util.to_excel_datetime(item))
+
+  defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
+
   defp cols(nil, content, padding, widths) do
     case content |> Stream.take(1) |> Enum.to_list() do
       [headers] -> cols(headers, content, padding, widths)
@@ -194,30 +206,22 @@ defmodule Exceed.Worksheet do
     }
   end
 
+  defp next_alphabet([x | rest]) when x >= 65 and x < 90, do: [x + 1 | rest]
+  defp next_alphabet([]), do: [65]
+  defp next_alphabet([x | rest]) when x == 90, do: [65 | next_alphabet(rest)]
+
+  defp prepend_headers(stream, nil), do: stream
+  defp prepend_headers(stream, headers), do: Stream.concat([headers], stream)
+
   defp sheet_data(stream, headers) do
     stream
     |> prepend_headers(headers)
     |> Stream.transform(1, fn row, row_idx ->
-      row(
-        row,
-        fn
-          item when is_number(item) ->
-            {%{"t" => "n"}, Xs.element("v", [Xs.content(to_string(item))])}
-
-          item when is_binary(item) ->
-            {%{"t" => "inlineStr"}, Xs.element("is", [Xs.element("t", [Xs.content(item)])])}
-        end,
-        row_idx
-      )
+      to_row(row, row_idx, &cell_attrs_and_body/1)
     end)
   end
 
-  defp row(items, mapper, row_index) do
-    identifier = to_string(row_index)
-    {[Xs.element("row", %{"r" => identifier}, cells(items, identifier, mapper))], row_index + 1}
-  end
-
-  defp cells(row, row_idx, mapper) do
+  defp to_cells(row, row_idx, mapper) do
     Enum.map_reduce(row, [65], fn cell, count ->
       {attrs, body} = mapper.(cell)
       cell_letter = cell_idx_to_letter(count)
@@ -227,12 +231,8 @@ defmodule Exceed.Worksheet do
     |> elem(0)
   end
 
-  defp next_alphabet([x | rest]) when x >= 65 and x < 90, do: [x + 1 | rest]
-  defp next_alphabet([]), do: [65]
-  defp next_alphabet([x | rest]) when x == 90, do: [65 | next_alphabet(rest)]
-
-  defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
-
-  defp prepend_headers(stream, nil), do: stream
-  defp prepend_headers(stream, headers), do: Stream.concat([headers], stream)
+  defp to_row(items, row_idx, mapper) do
+    identifier = to_string(row_idx)
+    {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier, mapper))], row_idx + 1}
+  end
 end
