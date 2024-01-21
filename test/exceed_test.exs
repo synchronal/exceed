@@ -85,4 +85,34 @@ defmodule ExceedTest do
       assert XlsxReader.sheet_names(wb) == ["First Worksheet", "Second Worksheet"]
     end
   end
+
+  describe "dates" do
+    setup [:make_tmpdir]
+
+    @tag :skip
+    test "can be parsed", %{tmpdir: tmpdir} do
+      today = Date.utc_today()
+
+      stream =
+        Stream.unfold(0, fn i -> {[Date.add(today, -i)], i + 1} end)
+        |> Stream.take(100)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert XlsxReader.sheet_names(wb) == ["Sheet"]
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+
+      assert Enum.take(rows, 5) == [
+               [today],
+               [Date.add(today, -1)],
+               [Date.add(today, -2)],
+               [Date.add(today, -3)],
+               [Date.add(today, -4)]
+             ]
+    end
+  end
 end

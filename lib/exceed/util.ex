@@ -1,7 +1,14 @@
+defmodule Exceed.Util.Guards do
+  @moduledoc false
+
+  defguard is_valid_year?(year) when year >= 1900
+end
+
 defmodule Exceed.Util do
   # @related [tests](test/exceed/util_test.exs)
 
   @moduledoc "Helpers for converting Elixir data formats to Excel"
+  import Exceed.Util.Guards
 
   @type erl_datetime_t() :: {
           {pos_integer(), pos_integer(), pos_integer()},
@@ -13,7 +20,6 @@ defmodule Exceed.Util do
 
   @doc "Converts a DateTime to a float representing days since 1900, correcting for the Lotus 123 bug"
   @spec to_excel_datetime(erl_datetime_t() | Date.t() | DateTime.t()) :: float()
-
   def to_excel_datetime({{1900, mm, dd}, {h, m, s}})
       when mm in [1, 2] do
     in_seconds = :calendar.datetime_to_gregorian_seconds({{1900, mm, dd}, {h, m, s}})
@@ -23,8 +29,7 @@ defmodule Exceed.Util do
     timestamp - 1
   end
 
-  def to_excel_datetime({{yy, mm, dd}, {h, m, s}})
-      when yy >= 1900 do
+  def to_excel_datetime({{yy, mm, dd}, {h, m, s}}) when is_valid_year?(yy) do
     in_seconds = :calendar.datetime_to_gregorian_seconds({{yy, mm, dd}, {h, m, s}})
     excel_epoch = :calendar.datetime_to_gregorian_seconds(@excel_epoch)
 
@@ -32,13 +37,13 @@ defmodule Exceed.Util do
   end
 
   def to_excel_datetime(%DateTime{year: yy, month: mm, day: dd, hour: h, minute: m, second: s, time_zone: "Etc/UTC"})
-      when yy >= 1900,
+      when is_valid_year?(yy),
       do: to_excel_datetime({{yy, mm, dd}, {h, m, s}})
 
   def to_excel_datetime(%DateTime{time_zone: "Etc/UTC"} = datetime),
     do: DateTime.to_iso8601(datetime)
 
-  def to_excel_datetime(%Date{year: yy, month: mm, day: dd}) when yy >= 1900,
+  def to_excel_datetime(%Date{year: yy, month: mm, day: dd}) when is_valid_year?(yy),
     do: to_excel_datetime({{yy, mm, dd}, {0, 0, 0}})
 
   def to_excel_datetime(%Date{} = datetime),

@@ -206,8 +206,8 @@ defmodule Exceed.WorksheetTest do
     row
     |> Xq.all("//c")
     |> Enum.map(fn cell ->
-      case Xq.attr(cell, "t") do
-        "inlineStr" ->
+      case {Xq.attr(cell, "s"), Xq.attr(cell, "t")} do
+        {_, "inlineStr"} ->
           %{
             cell: Xq.attr(cell, "r"),
             children: "is/t",
@@ -215,7 +215,15 @@ defmodule Exceed.WorksheetTest do
             type: "inlineStr"
           }
 
-        "n" ->
+        {nil, "n"} ->
+          %{
+            cell: Xq.attr(cell, "r"),
+            children: "v",
+            text: Xq.find!(cell, "//v") |> Xq.text(),
+            type: "n"
+          }
+
+        {"" <> _, nil} ->
           %{
             cell: Xq.attr(cell, "r"),
             children: "v",

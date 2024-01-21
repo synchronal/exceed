@@ -7,7 +7,10 @@ defmodule Exceed.Stylesheet do
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       Xs.element("styleSheet", %{"xmlns" => Exceed.Namespace.main()}, [
-        Xs.element("numFmts", %{"count" => "0"}, []),
+        Xs.element("numFmts", %{"count" => "2"}, [
+          Xs.empty_element("numFmt", %{"numFmtId" => "164", "formatCode" => "yyyy/mm/dd"}),
+          Xs.empty_element("numFmt", %{"numFmtId" => "165", "formatCode" => "yyyy/mm/dd hh:mm:ss"})
+        ]),
         Xs.element("fonts", %{"count" => "1"}, [
           Xs.empty_element("font")
         ]),
@@ -24,12 +27,21 @@ defmodule Exceed.Stylesheet do
             Xs.empty_element("diagonal")
           ])
         ]),
-        Xs.element("cellXfs", %{"count" => "1"}, [
+        Xs.element("cellXfs", %{"count" => "3"}, [
+          Xs.empty_element("xf", %{"borderId" => "0", "fontId" => "0", "numFmtId" => "0", "xfId" => "0"}),
           Xs.empty_element("xf", %{
+            "numFmtId" => "164",
             "borderId" => "0",
             "fontId" => "0",
-            "numFmtId" => "0",
-            "xfId" => "0"
+            "xfId" => "0",
+            "applyNumberFormat" => "1"
+          }),
+          Xs.empty_element("xf", %{
+            "numFmtId" => "165",
+            "borderId" => "0",
+            "fontId" => "0",
+            "xfId" => "0",
+            "applyNumberFormat" => "1"
           })
         ]),
         Xs.element(

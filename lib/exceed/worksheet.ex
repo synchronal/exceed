@@ -60,6 +60,7 @@ defmodule Exceed.Worksheet do
     for more info).
 
   """
+  import Exceed.Util.Guards
   alias Exceed.Util
   alias XmlStream, as: Xs
 
@@ -172,17 +173,24 @@ defmodule Exceed.Worksheet do
 
   # # #
 
-  defp cell_attrs_and_body(item) when is_number(item),
-    do: {%{"t" => "n"}, Xs.element("v", [Xs.content(to_string(item))])}
+  defp cell_attrs_and_body(item) when is_number(item), do: {cell_attrs(item), cell_content(item)}
+  defp cell_attrs_and_body(item) when is_binary(item), do: {cell_attrs(item), cell_content(item)}
+  defp cell_attrs_and_body(%Date{} = item), do: {cell_attrs(item), cell_content(item)}
+  defp cell_attrs_and_body(%DateTime{} = item), do: {cell_attrs(item), cell_content(item)}
 
-  defp cell_attrs_and_body(item) when is_binary(item),
-    do: {%{"t" => "inlineStr"}, Xs.element("is", [Xs.element("t", [Xs.content(item)])])}
+  defp cell_attrs(item) when is_number(item), do: %{"t" => "n"}
+  defp cell_attrs(item) when is_binary(item), do: %{"t" => "inlineStr"}
 
-  defp cell_attrs_and_body(%DateTime{} = item),
-    do: cell_attrs_and_body(Util.to_excel_datetime(item))
+  defp cell_attrs(%Date{year: y}) when is_valid_year?(y), do: %{"s" => "1"}
+  defp cell_attrs(%Date{}), do: %{"t" => "inlineStr"}
 
-  defp cell_attrs_and_body(%Date{} = item),
-    do: cell_attrs_and_body(Util.to_excel_datetime(item))
+  defp cell_attrs(%DateTime{year: y}) when is_valid_year?(y), do: %{"s" => "2"}
+  defp cell_attrs(%DateTime{}), do: %{"t" => "inlineStr"}
+
+  defp cell_content(item) when is_number(item), do: Xs.element("v", [Xs.content(to_string(item))])
+  defp cell_content(item) when is_binary(item), do: Xs.element("is", [Xs.element("t", [Xs.content(item)])])
+  defp cell_content(%Date{} = d), do: d |> Util.to_excel_datetime() |> cell_content()
+  defp cell_content(%DateTime{} = dt), do: dt |> Util.to_excel_datetime() |> cell_content()
 
   defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
 
