@@ -8,8 +8,8 @@ defmodule Exceed.Stylesheet do
       Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       Xs.element("styleSheet", %{"xmlns" => Exceed.Namespace.main()}, [
         Xs.element("numFmts", %{"count" => "2"}, [
-          Xs.empty_element("numFmt", %{"numFmtId" => "164", "formatCode" => "yyyy/mm/dd"}),
-          Xs.empty_element("numFmt", %{"numFmtId" => "165", "formatCode" => "yyyy/mm/dd hh:mm:ss"})
+          Xs.empty_element("numFmt", %{"numFmtId" => "164", "formatCode" => "yyyy-mm-dd"}),
+          Xs.empty_element("numFmt", %{"numFmtId" => "165", "formatCode" => "yyyy-mm-dd hh:mm:ss"})
         ]),
         Xs.element("fonts", %{"count" => "1"}, [
           Xs.empty_element("font")

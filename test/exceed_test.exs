@@ -89,7 +89,6 @@ defmodule ExceedTest do
   describe "dates" do
     setup [:make_tmpdir]
 
-    @tag :skip
     test "can be parsed", %{tmpdir: tmpdir} do
       today = Date.utc_today()
 
@@ -112,6 +111,37 @@ defmodule ExceedTest do
                [Date.add(today, -2)],
                [Date.add(today, -3)],
                [Date.add(today, -4)]
+             ]
+    end
+  end
+
+  describe "datetimes" do
+    setup [:make_tmpdir]
+
+    test "can be parsed", %{tmpdir: tmpdir} do
+      now = DateTime.utc_now()
+
+      stream =
+        Stream.unfold(0, fn i -> {[DateTime.add(now, -i, :day)], i + 1} end)
+        |> Stream.take(100)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert XlsxReader.sheet_names(wb) == ["Sheet"]
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+
+      parsed_now = now |> DateTime.truncate(:second) |> DateTime.to_naive()
+
+      assert Enum.take(rows, 5) == [
+               [parsed_now],
+               [NaiveDateTime.add(parsed_now, -1, :day)],
+               [NaiveDateTime.add(parsed_now, -2, :day)],
+               [NaiveDateTime.add(parsed_now, -3, :day)],
+               [NaiveDateTime.add(parsed_now, -4, :day)]
              ]
     end
   end

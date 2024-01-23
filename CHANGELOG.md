@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Date and DateTime cells used default formatting rules that may be
+  parsed back into Dates and DateTimes.
+
 ## 0.2.0
 
 - Dates and DateTimes have default formatting rules applied.
