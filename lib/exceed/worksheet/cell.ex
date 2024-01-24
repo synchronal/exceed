@@ -5,6 +5,10 @@ defprotocol Exceed.Worksheet.Cell do
   A protocol for transforming source data into data structures that can be streamed
   to appropriate SpreadsheetML tags, using the `XmlStream` library.
 
+  This protocol is implemented for floats, integers, strings, and binaries, in addition
+  to `Date`, `DateTime`, and `NaiveDateTime`. If the [decimal](https://hex.pm/packages/decimal)
+  library is present, this protocoal is automatically implemented for `Decimal`.
+
   ## Examples
 
   ``` elixir
