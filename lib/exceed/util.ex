@@ -19,7 +19,7 @@ defmodule Exceed.Util do
   @secs_per_day 86_400
 
   @doc "Converts a DateTime to a float representing days since 1900, correcting for the Lotus 123 bug"
-  @spec to_excel_datetime(erl_datetime_t() | Date.t() | DateTime.t()) :: float()
+  @spec to_excel_datetime(erl_datetime_t() | Date.t() | DateTime.t() | NaiveDateTime.t()) :: float()
   def to_excel_datetime({{1900, mm, dd}, {h, m, s}})
       when mm in [1, 2] do
     in_seconds = :calendar.datetime_to_gregorian_seconds({{1900, mm, dd}, {h, m, s}})
@@ -42,6 +42,13 @@ defmodule Exceed.Util do
 
   def to_excel_datetime(%DateTime{time_zone: "Etc/UTC"} = datetime),
     do: DateTime.to_iso8601(datetime)
+
+  def to_excel_datetime(%NaiveDateTime{year: yy, month: mm, day: dd, hour: h, minute: m, second: s})
+      when is_valid_year?(yy),
+      do: to_excel_datetime({{yy, mm, dd}, {h, m, s}})
+
+  def to_excel_datetime(%NaiveDateTime{} = datetime),
+    do: NaiveDateTime.to_iso8601(datetime)
 
   def to_excel_datetime(%Date{year: yy, month: mm, day: dd}) when is_valid_year?(yy),
     do: to_excel_datetime({{yy, mm, dd}, {0, 0, 0}})

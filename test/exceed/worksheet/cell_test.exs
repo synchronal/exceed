@@ -71,6 +71,25 @@ defmodule Exceed.Worksheet.CellTest do
     end
   end
 
+  describe "naive datetimes" do
+    test "attrs: assigns style of `2`" do
+      assert Cell.to_attrs(~N[2024-01-01 15:01:02]) == %{"s" => "2"}
+    end
+
+    test "attrs: assigns type of `inlineStr` when before 1900" do
+      assert Cell.to_attrs(~N[1899-01-01 23:59:59]) == %{"t" => "inlineStr"}
+    end
+
+    test "content: converts the date to epoch and wraps the content in `v`" do
+      assert ~N[2024-01-01 15:01:02Z] |> Exceed.Util.to_excel_datetime() == 45_292.62571759259
+      assert Cell.to_content(~N[2024-01-01 15:01:02]) |> stream_to_xml() == "<v>45292.62571759259</v>"
+    end
+
+    test "content: wraps the content in `is`>`t` tags when before 1900" do
+      assert Cell.to_content(~N[1899-01-01 15:01:02]) |> stream_to_xml() == "<is><t>1899-01-01T15:01:02</t></is>"
+    end
+  end
+
   describe "decimals" do
     test "attrs: assigns type of `n`" do
       assert Cell.to_attrs(Decimal.new("5.78")) == %{"t" => "n"}

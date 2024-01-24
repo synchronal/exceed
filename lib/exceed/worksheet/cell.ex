@@ -94,6 +94,17 @@ defimpl Exceed.Worksheet.Cell, for: DateTime do
     do: Util.to_excel_datetime(value) |> Exceed.Worksheet.Cell.to_content()
 end
 
+defimpl Exceed.Worksheet.Cell, for: NaiveDateTime do
+  import Exceed.Util.Guards, only: [is_valid_year?: 1]
+  alias Exceed.Util
+
+  def to_attrs(%NaiveDateTime{year: year}) when is_valid_year?(year), do: %{"s" => "2"}
+  def to_attrs(%NaiveDateTime{}), do: %{"t" => "inlineStr"}
+
+  def to_content(value),
+    do: Util.to_excel_datetime(value) |> Exceed.Worksheet.Cell.to_content()
+end
+
 if Code.ensure_loaded?(Decimal) do
   defimpl Exceed.Worksheet.Cell, for: Decimal do
     alias XmlStream, as: Xs
