@@ -38,12 +38,12 @@ defmodule Exceed.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:decimal, "~> 2.1", only: :test},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.28", only: [:docs, :dev], runtime: false},
+      {:ex_doc, "~> 0.31", only: [:docs, :dev], runtime: false},
       {:mix_audit, "~> 2.0", only: :dev, runtime: false},
       {:moar, "~> 1.50", only: :test},
-      {:xlsx_reader, "~> 0.8.1", only: :test},
+      {:xlsx_reader, "~> 0.8", only: :test},
       {:xml_query, "~> 0.2", only: :test},
-      {:xml_stream, "~> 0.2.0"},
+      {:xml_stream, "~> 0.3"},
       {:zstream, "~> 0.6.4"}
     ]
 
