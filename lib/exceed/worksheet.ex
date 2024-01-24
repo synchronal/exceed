@@ -12,7 +12,7 @@ defmodule Exceed.Worksheet do
   iex> rows = [["row 1"], ["row 2"]]
   iex> ws = Exceed.Worksheet.new("Sheet Name", headers, rows)
   #Exceed.Worksheet<name: "Sheet Name", ...>
-  ...>
+  iex>
   iex> Exceed.Workbook.new("creator name")
   ...>  |> Exceed.Workbook.add_worksheet(ws)
   #Exceed.Workbook<sheets: ["Sheet Name"]>
@@ -27,9 +27,13 @@ defmodule Exceed.Worksheet do
   ``` elixir
   iex> stream = Stream.repeatedly(fn -> [:rand.uniform(), :rand.uniform()] end)
   ...>
-  iex> %Worksheet{} =
-  ...>     Exceed.Worksheet.new("Sheet Name", ["Random 1", "Random 2"], stream)
+  iex> Exceed.Worksheet.new("Sheet Name", ["Random 1", "Random 2"], stream)
+  #Exceed.Worksheet<name: "Sheet Name", ...>
   ```
+
+  Values in each row execute the `Exceed.Worksheet.Cell` protocol to convert
+  Elixir data structures to XML using appropriate SpreadsheetML tags and
+  determine the appropriate XML attributes to merge onto the cell.
 
   ## Sheet options
 
@@ -39,18 +43,20 @@ defmodule Exceed.Worksheet do
   ``` elixir
   iex> headers = ["header 1"]
   iex> rows = [["row 1"], ["row 2"]]
-  iex> opts = [cols: [padding: 6.325]]
-  iex> %Worksheet{} = Exceed.Worksheet.new("Sheet Name", headers, rows, opts)
+  iex> opts = [cols: [padding: 6.325, widths: %{2 => 10.75}]]
+  iex>
+  iex> Exceed.Worksheet.new("Sheet Name", headers, rows, opts)
+  #Exceed.Worksheet<name: "Sheet Name", ...>
   ```
 
   - Column padding - `cols: [padding: value]` - default: `4.25` - extra space
     given to each column, in addition to whatever is determined from the
-    headers or the specified widths.
+    headers or the specified widths. Not used when an exact width is specified
+    for a column.
   - Column width - `cols: [widths: %{1 => 15.75}]` - specify the exact width
-    of specific columns as a map of 1-indexed column indexes to width as a
-    float. When not provided, this is automatically determined from the
-    character length of the relevant header cell, or from the first row when
-    no headers are provided.
+    of specific columns as a map of 1-indexed column indexes to floats. When not
+    provided, this is automatically determined from the character length of the
+    relevant header cell, or from the first row when no headers are provided.
 
   ### Column widths
 

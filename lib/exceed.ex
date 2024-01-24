@@ -1,10 +1,9 @@
 defmodule Exceed do
   # @related [tests](test/exceed_test.exs)
   @moduledoc """
-  Exceed is a high-level stream-oriented library for generating Excel files.
-  It may be useful when generating spreadsheets from data sets that exceed
-  available memory—or exceed the memory that one wishes to devote to
-  generating Excel files.
+  Exceed is a high-level stream-oriented library for generating Excel files,
+  useful when generating spreadsheets from data sets that exceed available
+  memory (or the memory that one wishes to devote to generating Excel files).
 
   ## Examples
 
@@ -23,7 +22,8 @@ defmodule Exceed do
   """
 
   @doc """
-  Convert an `Exceed.Workbook` to a stream.
+  Convert an `Exceed.Workbook` to a stream. See `Exceed.Workbook.new/1`,
+  `Exceed.Worksheet.new/4`, and `Exceed.Workbook.add_worksheet/2`.
   """
   @spec stream!(Exceed.Workbook.t()) :: Enum.t()
   def stream!(%Exceed.Workbook{} = wb) do

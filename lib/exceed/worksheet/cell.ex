@@ -26,10 +26,12 @@ defprotocol Exceed.Worksheet.Cell do
 
   @doc """
   For a given data type, these attributes will be merged onto the `c` tag wrapping
-  this cell's content.
+  this cell's content. Note that the `r` attribute (designating the cell's identifier
+  in `A1` format) will be calculated when streaming a worksheet to XLSX, and should
+  _not_ be included in this output.
   """
   @spec to_attrs(t) :: XmlStream.attrs()
-  def to_attrs(valu)
+  def to_attrs(value)
 
   @doc """
   For a given data type, convert the value to a list of tags. Functions from

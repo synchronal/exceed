@@ -1,9 +1,9 @@
 # Exceed
 
-`Exceed` is a high-level stream-oriented library for generating Excel files.
-Useful when generating spreadsheets from data sets large enough that they may
-exceed available memory—or at least the available memory that one might want
-to dedicate to building spreadsheets.
+`Exceed` is a high-level stream-oriented library for generating Excel files,
+useful when generating spreadsheets from data sets large enough that they may
+exceed available memory—or the available memory that one wants to dedicate to
+building spreadsheets.
 
 ## Installation
 
@@ -14,6 +14,24 @@ def deps do
   ]
 end
 ```
+
+## Why a duck?
+
+XLSX files are zip files containing numerous XML files following
+[`SpreadsheetML`](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/structure-of-a-spreadsheetml-document?tabs=cs)
+OpenXML schemas. [`High-level libraries`](https://hex.pm/packages/elixlsx) already
+exist to generate XLSX files from Elixir, but do not handle streams—all
+content to be written to a spreadsheet must be held in memory until the
+spreadsheet is fully written.
+
+[`Low-level libraries`](https://hex.pm/packages/xlsx_stream) already exist to
+generate XLSX files from streams, but are so low level that one must know all
+the ins and outs of SpreasheetML, including positional ordering of files, tags,
+and attributes.
+
+We wanted a library that hides the complexity of streaming to XML to zlib,
+and hides the complexity of OOXML.
+
 
 ## Usage
 
@@ -49,14 +67,34 @@ Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows)
 
 ## Alternatives & References
 
-This library is inspired by and learns from other great libraries. One may
-choose to use those instead of Exceed:
+This library is inspired by and learns from other great libraries. One might
+choose to use one of those in place of `Exceed`:
 
-- [elixlsx](https://hex.pm/packages/elixlsx) - Provides fine-grained control
+- [`elixlsx`](https://hex.pm/packages/elixlsx) - Provides fine-grained control
   over cells, but is not stream-oriented and thus requires that all source data
   and rows be retained in memory until the entire workbook is written.
-- [xml_stream](https://hex.pm/packages/xml_stream) - Provides low-level
+- [`xlsx_stream`](https://hex.pm/packages/xlsx_stream) - Provides low-level
   constructs that may be combined to make an Excel file. Works nicely with
   streams. Requires that one know all the ins and outs of
-  [SpreadsheetML](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/structure-of-a-spreadsheetml-document?tabs=cs)
+  [`SpreadsheetML`](https://learn.microsoft.com/en-us/office/open-xml/spreadsheet/structure-of-a-spreadsheetml-document?tabs=cs)
   in order to make a valid file that Excel can parse.
+
+## Contributing
+
+This library uses [`medic`](https://github.com/synchronal/medic-rs) for its
+development workflow.
+
+``` shell
+brew bundle
+
+bin/dev/doctor
+bin/dev/test
+bin/dev/audit
+bin/dev/update
+bin/dev/shipit
+```
+
+If one does not want to install extra tooling but wishes to contribute code
+fixes, new features, or documentation, please verify that code is formatted
+with the versions of Elixir and Erlang specified in `.tool-versions`, passes
+all tests, and passes strict credo and dialyzer.

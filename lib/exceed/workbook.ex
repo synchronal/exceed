@@ -2,8 +2,8 @@ defmodule Exceed.Workbook do
   # @related [tests](test/exceed/workbook_test.exs)
 
   @moduledoc """
-  The top-level structure for collecting structures that will be converted to an
-  Excel file.
+  The top-level data structure that collects worksheets and metadata for
+  generating an Excel file.
 
   ## Examples
 
@@ -18,7 +18,7 @@ defmodule Exceed.Workbook do
   iex> ws = Exceed.Worksheet.new("Sheet Name", headers, rows)
   ...>
   iex> Exceed.Workbook.new("creator name")
-  ...>  |> Exceed.Workbook.add_worksheet(ws)
+  ...>   |> Exceed.Workbook.add_worksheet(ws)
   #Exceed.Workbook<sheets: ["Sheet Name"]>
   ```
   """

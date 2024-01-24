@@ -56,7 +56,11 @@ defmodule Exceed.MixProject do
   defp docs,
     do: [
       main: "readme",
-      extras: ["README.md", "LICENSE.md"]
+      extras: ["README.md", "LICENSE.md"],
+      groups_for_modules: [
+        Protocols: [Exceed.Worksheet.Cell],
+        Utilities: [Exceed.Util]
+      ]
     ]
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]

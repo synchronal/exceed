@@ -7,7 +7,7 @@ end
 defmodule Exceed.Util do
   # @related [tests](test/exceed/util_test.exs)
 
-  @moduledoc "Helpers for converting Elixir data formats to Excel"
+  @moduledoc "Helpers for converting Elixir data formats to Excel."
   import Exceed.Util.Guards
 
   @type erl_datetime_t() :: {
@@ -18,7 +18,16 @@ defmodule Exceed.Util do
   @excel_epoch {{1899, 12, 30}, {0, 0, 0}}
   @secs_per_day 86_400
 
-  @doc "Converts a DateTime to a float representing days since 1900, correcting for the Lotus 123 bug"
+  @doc """
+  Converts a `Date`, `DateTime`, or `NaiveDateTime` to a float representing days
+  since 1900, correcting for the Lotus 123 bug (Excel treats 1900 as a leap
+  year).
+
+  ## Examples
+
+  ``` elixir
+  ```
+  """
   @spec to_excel_datetime(erl_datetime_t() | Date.t() | DateTime.t() | NaiveDateTime.t()) :: float()
   def to_excel_datetime({{1900, mm, dd}, {h, m, s}})
       when mm in [1, 2] do
