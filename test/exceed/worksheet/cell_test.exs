@@ -70,4 +70,14 @@ defmodule Exceed.Worksheet.CellTest do
       assert Cell.to_content(~U[1899-01-01 15:01:02Z]) |> stream_to_xml() == "<is><t>1899-01-01T15:01:02Z</t></is>"
     end
   end
+
+  describe "decimals" do
+    test "attrs: assigns type of `n`" do
+      assert Cell.to_attrs(Decimal.new("5.78")) == %{"t" => "n"}
+    end
+
+    test "content: wraps the content in `v`" do
+      assert Cell.to_content(Decimal.new("5.78")) |> stream_to_xml() == "<v>5.78</v>"
+    end
+  end
 end

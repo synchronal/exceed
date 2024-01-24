@@ -93,3 +93,14 @@ defimpl Exceed.Worksheet.Cell, for: DateTime do
   def to_content(value),
     do: Util.to_excel_datetime(value) |> Exceed.Worksheet.Cell.to_content()
 end
+
+if Code.ensure_loaded?(Decimal) do
+  defimpl Exceed.Worksheet.Cell, for: Decimal do
+    alias XmlStream, as: Xs
+
+    def to_attrs(_), do: %{"t" => "n"}
+
+    def to_content(value),
+      do: Xs.element("v", [Xs.content(to_string(value))])
+  end
+end
