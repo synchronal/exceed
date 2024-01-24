@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.1
+
 - Update and organize documentation.
 
 ## 0.3.0
