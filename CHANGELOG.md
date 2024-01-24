@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Introduce the `Exceed.Worksheet.Cell` protocol for converting data
+  to XmlStream fragments that can be written to a spreadsheet's XML.
 - Date and DateTime cells used default formatting rules that may be
   parsed back into Dates and DateTimes.
 

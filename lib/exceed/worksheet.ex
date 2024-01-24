@@ -60,8 +60,7 @@ defmodule Exceed.Worksheet do
     for more info).
 
   """
-  import Exceed.Util.Guards
-  alias Exceed.Util
+  alias Exceed.Worksheet.Cell
   alias XmlStream, as: Xs
 
   @type headers() :: [String.t()] | nil
@@ -173,25 +172,6 @@ defmodule Exceed.Worksheet do
 
   # # #
 
-  defp cell_attrs_and_body(item) when is_number(item), do: {cell_attrs(item), cell_content(item)}
-  defp cell_attrs_and_body(item) when is_binary(item), do: {cell_attrs(item), cell_content(item)}
-  defp cell_attrs_and_body(%Date{} = item), do: {cell_attrs(item), cell_content(item)}
-  defp cell_attrs_and_body(%DateTime{} = item), do: {cell_attrs(item), cell_content(item)}
-
-  defp cell_attrs(item) when is_number(item), do: %{"t" => "n"}
-  defp cell_attrs(item) when is_binary(item), do: %{"t" => "inlineStr"}
-
-  defp cell_attrs(%Date{year: y}) when is_valid_year?(y), do: %{"s" => "1"}
-  defp cell_attrs(%Date{}), do: %{"t" => "inlineStr"}
-
-  defp cell_attrs(%DateTime{year: y}) when is_valid_year?(y), do: %{"s" => "2"}
-  defp cell_attrs(%DateTime{}), do: %{"t" => "inlineStr"}
-
-  defp cell_content(item) when is_number(item), do: Xs.element("v", [Xs.content(to_string(item))])
-  defp cell_content(item) when is_binary(item), do: Xs.element("is", [Xs.element("t", [Xs.content(item)])])
-  defp cell_content(%Date{} = d), do: d |> Util.to_excel_datetime() |> cell_content()
-  defp cell_content(%DateTime{} = dt), do: dt |> Util.to_excel_datetime() |> cell_content()
-
   defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
 
   defp cols(nil, content, padding, widths) do
@@ -228,13 +208,14 @@ defmodule Exceed.Worksheet do
     stream
     |> prepend_headers(headers)
     |> Stream.transform(1, fn row, row_idx ->
-      to_row(row, row_idx, &cell_attrs_and_body/1)
+      to_row(row, row_idx)
     end)
   end
 
-  defp to_cells(row, row_idx, mapper) do
+  defp to_cells(row, row_idx) do
     Enum.map_reduce(row, [65], fn cell, count ->
-      {attrs, body} = mapper.(cell)
+      attrs = Cell.to_attrs(cell)
+      body = Cell.to_content(cell)
       cell_letter = cell_idx_to_letter(count)
 
       {Xs.element("c", Map.merge(attrs, %{"r" => cell_letter <> row_idx}), body), next_alphabet(count)}
@@ -242,8 +223,8 @@ defmodule Exceed.Worksheet do
     |> elem(0)
   end
 
-  defp to_row(items, row_idx, mapper) do
+  defp to_row(items, row_idx) do
     identifier = to_string(row_idx)
-    {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier, mapper))], row_idx + 1}
+    {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier))], row_idx + 1}
   end
 end
