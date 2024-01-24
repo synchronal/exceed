@@ -1,4 +1,6 @@
 defprotocol Exceed.Worksheet.Cell do
+  # @related [tests](test/exceed/worksheet/cell_test.exs)
+
   @moduledoc """
   A protocol for transforming source data into data structures that can be streamed
   to appropriate SpreadsheetML tags, using the `XmlStream` library.
