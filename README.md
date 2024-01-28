@@ -42,7 +42,7 @@ adding worksheets, and then converting that to a stream.
 stream =
   Exceed.Workbook.new("Creator Name")
   |> Exceed.Workbook.add_worksheet(
-    Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"]
+    Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"],
       [["Row 1 Cell 1", "Row 1 Cell 2"], ["Row 2 Cell 1", "Row 2 Cell 2"]])
   )
   |> Exceed.stream!()
