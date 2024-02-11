@@ -23,8 +23,8 @@ jobs:
               elixir: 1.16.0
               otp: 25.0
           - pair:
-              elixir: 1.16.0
-              otp: 26.2.1
+              elixir: 1.16.1
+              otp: 26.2.2
     name: Build Test
     runs-on: ubuntu-20.04
     env:
@@ -69,8 +69,8 @@ jobs:
               elixir: 1.16.0
               otp: 25.0
           - pair:
-              elixir: 1.16.0
-              otp: 26.2.1
+              elixir: 1.16.1
+              otp: 26.2.2
     name: Build Dev
     runs-on: ubuntu-20.04
     env:
@@ -115,8 +115,8 @@ jobs:
               elixir: 1.16.0
               otp: 25.0
           - pair:
-              elixir: 1.16.0
-              otp: 26.2.1
+              elixir: 1.16.1
+              otp: 26.2.2
     name: Test
     needs: build_test
     runs-on: ubuntu-20.04
@@ -159,8 +159,8 @@ jobs:
               elixir: 1.16.0
               otp: 25.0
           - pair:
-              elixir: 1.16.0
-              otp: 26.2.1
+              elixir: 1.16.1
+              otp: 26.2.2
     name: Credo + Dialyxir
     needs: build_test
     runs-on: ubuntu-20.04
@@ -202,8 +202,8 @@ jobs:
       matrix:
         include:
           - pair:
-              elixir: 1.16.0
-              otp: 26.2.1
+              elixir: 1.16.1
+              otp: 26.2.2
     name: Audit
     needs: build_dev
     runs-on: ubuntu-20.04
@@ -243,8 +243,8 @@ jobs:
       matrix:
         include:
           - pair:
-              elixir: 1.16.0
-              otp: 26.2.1
+              elixir: 1.16.1
+              otp: 26.2.2
     name: Publish to Hex
     if: github.ref == 'refs/heads/main'
     needs:
