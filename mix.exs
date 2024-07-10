@@ -42,7 +42,7 @@ defmodule Exceed.MixProject do
       {:mix_audit, "~> 2.0", only: :dev, runtime: false},
       {:moar, "~> 1.50", only: :test},
       {:xlsx_reader, "~> 0.8", only: :test},
-      {:xml_query, "~> 0.2", only: :test},
+      {:xml_query, "~> 1.0", only: :test},
       {:xml_stream, "~> 0.3"},
       {:zstream, "~> 0.6.4"}
     ]
