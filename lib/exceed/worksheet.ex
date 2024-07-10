@@ -102,6 +102,7 @@ defmodule Exceed.Worksheet do
   iex> rows = [["row 1"], ["row 2"]]
   iex> opts = [cols: [padding: 6.325]]
   iex> %Worksheet{} = Exceed.Worksheet.new("Sheet Name", headers, rows, opts)
+
   ```
   """
   @spec new(String.t(), headers(), Enum.t(), keyword()) :: t()
