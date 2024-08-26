@@ -1,5 +1,6 @@
 *.ez
 /.fetch
+/.local/
 /_build/
 /cover/
 /deps/
