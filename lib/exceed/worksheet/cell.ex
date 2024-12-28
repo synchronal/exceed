@@ -42,6 +42,15 @@ defprotocol Exceed.Worksheet.Cell do
   def to_content(value)
 end
 
+defimpl Exceed.Worksheet.Cell, for: Atom do
+  alias XmlStream, as: Xs
+
+  def to_attrs(_), do: %{"t" => "inlineStr"}
+
+  def to_content(value),
+    do: Xs.element("is", [Xs.element("t", [Xs.content("#{value}")])])
+end
+
 defimpl Exceed.Worksheet.Cell, for: Float do
   alias XmlStream, as: Xs
 

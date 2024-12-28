@@ -3,6 +3,26 @@ defmodule Exceed.Worksheet.CellTest do
   use Test.SimpleCase, async: true
   alias Exceed.Worksheet.Cell
 
+  describe "nil" do
+    test "attrs: assigns type of `inlineStr`" do
+      assert Cell.to_attrs(nil) == %{"t" => "inlineStr"}
+    end
+
+    test "content: wraps the content in `is`>`t`" do
+      assert Cell.to_content(nil) |> stream_to_xml() == "<is><t></t></is>"
+    end
+  end
+
+  describe "atoms" do
+    test "attrs: assigns type of `inlineStr`" do
+      assert Cell.to_attrs(:something) == %{"t" => "inlineStr"}
+    end
+
+    test "content: wraps the content in `is`>`t`" do
+      assert Cell.to_content(:something) |> stream_to_xml() == "<is><t>something</t></is>"
+    end
+  end
+
   describe "floats" do
     test "attrs: assigns type of `n`" do
       assert Cell.to_attrs(5.78) == %{"t" => "n"}

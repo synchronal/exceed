@@ -2,7 +2,8 @@
 
 ## Unreleased
 
-- Drop support for Elixir 1.15
+- Handle nils and atoms when writing cells.
+- Drop support for Elixir 1.15.
 
 ## 0.3.1
 
