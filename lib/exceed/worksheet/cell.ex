@@ -45,7 +45,11 @@ end
 defimpl Exceed.Worksheet.Cell, for: Atom do
   alias XmlStream, as: Xs
 
+  def to_attrs(v) when is_boolean(v), do: %{"t" => "b"}
   def to_attrs(_), do: %{"t" => "inlineStr"}
+
+  def to_content(true), do: Xs.element("v", [Xs.content("1")])
+  def to_content(false), do: Xs.element("v", [Xs.content("0")])
 
   def to_content(value),
     do: Xs.element("is", [Xs.element("t", [Xs.content("#{value}")])])

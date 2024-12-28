@@ -23,6 +23,18 @@ defmodule Exceed.Worksheet.CellTest do
     end
   end
 
+  describe "booleans" do
+    test "attrs: assigns type of `b`" do
+      assert Cell.to_attrs(true) == %{"t" => "b"}
+      assert Cell.to_attrs(false) == %{"t" => "b"}
+    end
+
+    test "content: wraps the content in `v`" do
+      assert Cell.to_content(true) |> stream_to_xml() == "<v>1</v>"
+      assert Cell.to_content(false) |> stream_to_xml() == "<v>0</v>"
+    end
+  end
+
   describe "floats" do
     test "attrs: assigns type of `n`" do
       assert Cell.to_attrs(5.78) == %{"t" => "n"}
