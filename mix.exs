@@ -21,7 +21,7 @@ defmodule Exceed.MixProject do
       description: "A high-level stream-oriented MS Excel OpenXML (`.xlsx`) generator",
       dialyzer: dialyzer(),
       docs: docs(),
-      elixir: "~> 1.15",
+      elixir: "~> 1.16",
       elixirc_paths: elixirc_paths(Mix.env()),
       homepage_url: @scm_url,
       name: "Exceed",

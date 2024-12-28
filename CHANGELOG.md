@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Drop support for Elixir 1.15
+
 ## 0.3.1
 
 - Update and organize documentation.
