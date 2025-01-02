@@ -24,9 +24,12 @@ defmodule Exceed do
   @doc """
   Convert an `Exceed.Workbook` to a stream. See `Exceed.Workbook.new/1`,
   `Exceed.Worksheet.new/4`, and `Exceed.Workbook.add_worksheet/2`.
+
+  The only option at the moment is `buffer` which can be set to `true` (the default)
+  or to `false` (which may be more performant in some situations).
   """
-  @spec stream!(Exceed.Workbook.t()) :: Enum.t()
-  def stream!(%Exceed.Workbook{} = wb) do
+  @spec stream!(Exceed.Workbook.t(), keyword()) :: Enum.t()
+  def stream!(%Exceed.Workbook{} = wb, opts \\ []) do
     wb = Exceed.Workbook.finalize(wb)
 
     [
@@ -40,14 +43,14 @@ defmodule Exceed do
       {Exceed.SharedStrings.to_xml(), "xl/sharedStrings.xml"}
       | worksheets_to_files(wb.worksheets)
     ]
-    |> Enum.map(&to_file/1)
+    |> Enum.map(&to_file(&1, opts))
     |> Zstream.zip()
   end
 
   # # #
 
-  defp to_file({xml, filename}),
-    do: Exceed.File.file(xml, filename)
+  defp to_file({xml, filename}, opts),
+    do: Exceed.File.file(xml, filename, opts)
 
   defp worksheets_to_files(worksheets) do
     for {worksheet, i} <- Enum.with_index(worksheets, 1) do

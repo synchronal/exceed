@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- `Exceed.stream!` accepts a `buffer` option, which defaults to `true` and disables buffering when set to `false`,
+  which may be more performant in certain situations.
+
 ## 0.5.0
 
 - Handle booleans with `t="b"`.

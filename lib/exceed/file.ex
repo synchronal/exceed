@@ -3,11 +3,9 @@ defmodule Exceed.File do
 
   @buffer_size_bytes 16 * 1024
 
-  def file(content, filename) do
-    stream =
-      XmlStream.stream!(content, printer: XmlStream.Printer.Ugly)
-      |> buffer()
-
+  def file(content, filename, opts) do
+    stream = XmlStream.stream!(content, printer: XmlStream.Printer.Ugly)
+    stream = if Keyword.get(opts, :buffer, true), do: buffer(stream), else: stream
     Zstream.entry(filename, stream)
   end
 
