@@ -10,7 +10,7 @@ building spreadsheets.
 ``` elixir
 def deps do
   [
-    {:exceed, "~> 0.1"}
+    {:exceed, "~> 0.6"}
   ]
 end
 ```

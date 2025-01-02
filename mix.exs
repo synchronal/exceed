@@ -2,7 +2,7 @@ defmodule Exceed.MixProject do
   use Mix.Project
 
   @scm_url "https://github.com/synchronal/exceed"
-  @version "0.5.0"
+  @version "0.6.0"
 
   def application,
     do: [

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0
+
 - `Exceed.stream!` accepts a `buffer` option, which defaults to `true` and disables buffering when set to `false`,
   which may be more performant in certain situations.
 
