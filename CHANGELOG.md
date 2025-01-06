@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.6.1
+
+- Add documentation for streaming Excel files from Phoenix controllers.
+
 ## 0.6.0
 
 - `Exceed.stream!` accepts a `buffer` option, which defaults to `true` and disables buffering when set to `false`,
