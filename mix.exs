@@ -56,7 +56,7 @@ defmodule Exceed.MixProject do
   defp docs,
     do: [
       main: "readme",
-      extras: ["README.md", "LICENSE.md"],
+      extras: ["guides/phoenix.md", "README.md", "LICENSE.md"],
       groups_for_modules: [
         Protocols: [Exceed.Worksheet.Cell],
         Utilities: [Exceed.Util]
