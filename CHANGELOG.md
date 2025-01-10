@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.2
+
 - Fix phoenix integration docs.
 
 ## 0.6.1
