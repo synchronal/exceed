@@ -20,7 +20,7 @@ jobs:
               elixir: 1.18.1
               otp: 27.2
     name: Build Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MIX_ENV: test
     steps:
@@ -60,7 +60,7 @@ jobs:
               elixir: 1.18.1
               otp: 27.2
     name: Build Dev
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MIX_ENV: dev
     steps:
@@ -101,7 +101,7 @@ jobs:
               otp: 27.2
     name: Test
     needs: build_test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MIX_ENV: test
     steps:
@@ -139,7 +139,7 @@ jobs:
               otp: 27.2
     name: Credo + Dialyxir
     needs: build_test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MIX_ENV: test
     steps:
@@ -182,7 +182,7 @@ jobs:
               otp: 27.2
     name: Audit
     needs: build_dev
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MIX_ENV: dev
     steps:
@@ -227,7 +227,7 @@ jobs:
       - test
       - credo_and_dialyxir
       - audit
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: Set up Elixir
