@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fix phoenix integration docs.
+
 ## 0.6.1
 
 - Add documentation for streaming Excel files from Phoenix controllers.

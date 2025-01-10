@@ -17,13 +17,13 @@ defmodule Web.ExcelController do
       |> put_resp_header("content-disposition", "attachment; filename=file.xlsx")
       |> send_chunked(:ok)
 
-    for excel_chunk <- excel_stream(), reduce: conn do
-      conn ->
-        case chunk(conn, excel_chunk) do
-          {:ok, conn} -> {:cont, conn}
-          {:error, :closed} -> {:halt, conn}
-        end
-    end
+    excel_stream()
+    |> Enum.reduce_while(conn, fn excel_chunk, conn ->
+      case chunk(conn, excel_chunk) do
+        {:ok, conn} -> {:cont, conn}
+        {:error, :closed} -> {:halt, conn}
+      end
+    end)
   end
 
   # # #
