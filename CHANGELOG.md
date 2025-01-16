@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Improve performance of buffered file creation; track buffer size in accumulator, rather than continually
+  walking binaries to compute size.
+
 ## 0.6.2
 
 - Fix phoenix integration docs.
