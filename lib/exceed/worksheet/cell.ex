@@ -61,7 +61,7 @@ defimpl Exceed.Worksheet.Cell, for: Float do
   def to_attrs(_), do: %{"t" => "n"}
 
   def to_content(value),
-    do: Xs.element("v", [Xs.content(to_string(value))])
+    do: Xs.element("v", [Xs.content(value)])
 end
 
 defimpl Exceed.Worksheet.Cell, for: Integer do
@@ -70,7 +70,7 @@ defimpl Exceed.Worksheet.Cell, for: Integer do
   def to_attrs(_), do: %{"t" => "n"}
 
   def to_content(value),
-    do: Xs.element("v", [Xs.content(to_string(value))])
+    do: Xs.element("v", [Xs.content(value)])
 end
 
 defimpl Exceed.Worksheet.Cell, for: String do
