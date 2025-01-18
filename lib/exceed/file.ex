@@ -1,7 +1,7 @@
 defmodule Exceed.File do
   @moduledoc false
 
-  @buffer_size_bytes 16 * 1024
+  @buffer_size_bytes 128 * 1024
   @accumulator {[], 0}
 
   def file(content, filename, opts) do
