@@ -101,7 +101,7 @@ all tests, and passes strict credo and dialyzer.
 
 ## Benchmarks
 
-At time of writing, benchmarks indicate that Exceed performs at 1/3 to 1/4 the
+At time of writing, benchmarks indicate that Exceed performs at 30% to 40% the
 speed of non-streaming libraries such as Elixlsx. Ideas and PRs to improve the
 performance of file generation are very welcome!
 
