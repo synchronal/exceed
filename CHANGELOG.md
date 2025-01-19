@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 0.7.0
+
+- Update file buffering to 128kb chunks (prior to zipping)
 - Improve performance of buffered file creation; track buffer size in accumulator, rather than continually
   walking binaries to compute size.
 
