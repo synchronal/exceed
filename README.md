@@ -98,3 +98,24 @@ If one does not want to install extra tooling but wishes to contribute code
 fixes, new features, or documentation, please verify that code is formatted
 with the versions of Elixir and Erlang specified in `.tool-versions`, passes
 all tests, and passes strict credo and dialyzer.
+
+## Benchmarks
+
+At time of writing, benchmarks indicate that Exceed performs at 1/3 to 1/4 the
+speed of non-streaming libraries such as Elixlsx. Ideas and PRs to improve the
+performance of file generation are very welcome!
+
+``` shell
+# 10 columns, 100_000 rows
+MIX_ENV=benchmark mix run -r benchmark/exceed.exs -e "Benchmark.run()"
+# 20 columns, 1_000_000 rows
+MIX_ENV=benchmark mix run -r benchmark/exceed.exs -e "Benchmark.run([], 20, 1_000_000)"
+# pass options to `Exceed.File.file/3`
+MIX_ENV=benchmark mix run -r benchmark/exceed.exs -e "Benchmark.run([buffer: false], 20, 1_000_000)"
+
+# 10 columns, 100_000 rows
+MIX_ENV=benchmark mix run -r benchmark/elixlsx.exs -e "Benchmark.run()"
+# 20 columns, 1_000_000 rows
+MIX_ENV=benchmark mix run -r benchmark/elixlsx.exs -e "Benchmark.run([], 20, 1_000_000)"
+```
+

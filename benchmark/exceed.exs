@@ -1,28 +1,12 @@
 defmodule Benchmark do
-  require Logger
-
-  def buffered(column_count \\ 10, row_count \\ 100_000) do
+  def run(opts \\ [], column_count \\ 10, row_count \\ 100_000) do
     headers = headers(column_count)
     stream = stream(column_count, row_count)
 
     benchmark(column_count, row_count, fn ->
       Exceed.Worksheet.new("Sheet Name", headers, stream)
       |> Exceed.Worksheet.to_xml()
-      |> Exceed.File.file("xl/worksheets/sheet1.xml", [])
-      |> List.wrap()
-      |> Zstream.zip()
-      |> Stream.run()
-    end)
-  end
-
-  def unbuffered(column_count \\ 10, row_count \\ 100_000) do
-    headers = headers(column_count)
-    stream = stream(column_count, row_count)
-
-    benchmark(column_count, row_count, fn ->
-      Exceed.Worksheet.new("Sheet Name", headers, stream)
-      |> Exceed.Worksheet.to_xml()
-      |> Exceed.File.file("xl/worksheets/sheet1.xml", buffer: false)
+      |> Exceed.File.file("xl/worksheets/sheet1.xml", opts)
       |> List.wrap()
       |> Zstream.zip()
       |> Stream.run()
@@ -39,7 +23,7 @@ defmodule Benchmark do
     {duration, _} = :timer.tc(fun, :millisecond)
 
     rate_per_row = Float.round(batch_size / (duration / 1_000), 2)
-    Logger.info("Batch size #{column_count}*#{batch_size} completed in #{duration}ms, rate: #{rate_per_row} rows/sec")
+    IO.puts("Batch size #{column_count}*#{batch_size} completed in #{duration}ms, rate: #{rate_per_row} rows/sec")
   end
 
   def stream(column_count, row_count) do
