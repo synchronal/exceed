@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Slight performance improvement when buffering file writes.
+
 ## 0.7.0
 
 - Update file buffering to 128kb chunks (prior to zipping)
