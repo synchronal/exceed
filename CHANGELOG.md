@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.1
+
 - Slight performance improvement when buffering file writes.
 
 ## 0.7.0
