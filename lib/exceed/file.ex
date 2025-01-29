@@ -5,7 +5,7 @@ defmodule Exceed.File do
   @accumulator {<<>>, 0}
 
   def file(content, filename, opts) do
-    stream = XmlStream.stream!(content, printer: XmlStream.Printer.Ugly)
+    stream = XmlStream.stream!(content, printer: Exceed.Xml)
     stream = if Keyword.get(opts, :buffer, true), do: buffer(stream), else: stream
     Zstream.entry(filename, stream)
   end
