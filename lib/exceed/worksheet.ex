@@ -179,7 +179,7 @@ defmodule Exceed.Worksheet do
 
   # # #
 
-  defp cell_idx_to_letter(x), do: IO.chardata_to_string(Enum.reverse(x))
+  defp cell_idx_to_letter(x), do: IO.chardata_to_string(:lists.reverse(x))
 
   defp cols(nil, content, padding, widths) do
     case content |> Stream.take(1) |> Enum.to_list() do
@@ -204,9 +204,9 @@ defmodule Exceed.Worksheet do
     }
   end
 
-  defp next_alphabet([x | rest]) when x >= 65 and x < 90, do: [x + 1 | rest]
-  defp next_alphabet([]), do: [65]
-  defp next_alphabet([x | rest]) when x == 90, do: [65 | next_alphabet(rest)]
+  defp next_alphabet([x | rest]) when x >= ?A and x < ?Z, do: [x + 1 | rest]
+  defp next_alphabet([]), do: [?A]
+  defp next_alphabet([x | rest]) when x == ?Z, do: [?A | next_alphabet(rest)]
 
   defp prepend_headers(stream, nil), do: stream
   defp prepend_headers(stream, headers), do: Stream.concat([headers], stream)
@@ -220,12 +220,12 @@ defmodule Exceed.Worksheet do
   end
 
   defp to_cells(row, row_idx) do
-    Enum.map_reduce(row, [65], fn cell, count ->
+    Enum.reduce(row, {[], [?A]}, fn cell, {cells, count} ->
       attrs = Cell.to_attrs(cell)
       body = Cell.to_content(cell)
       cell_letter = cell_idx_to_letter(count)
 
-      {Xs.element("c", Map.merge(attrs, %{"r" => cell_letter <> row_idx}), body), next_alphabet(count)}
+      {:lists.append(cells, Xs.element("c", Map.put(attrs, "r", cell_letter <> row_idx), body)), next_alphabet(count)}
     end)
     |> elem(0)
   end
