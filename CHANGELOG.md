@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.2
+
+- Slight performance improvement when buffering writing worksheets.
+
 ## 0.7.1
 
 - Slight performance improvement when buffering file writes.
