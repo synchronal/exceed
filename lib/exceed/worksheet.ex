@@ -123,57 +123,52 @@ defmodule Exceed.Worksheet do
 
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8"),
-      Xs.element(
-        "worksheet",
-        %{
-          "xmlns" => Exceed.Namespace.main(),
-          "xmlns:r" => Exceed.Namespace.relationships(),
-          "xml:space" => "preserve"
-        },
-        [
-          Xs.element("sheetPr", [Xs.empty_element("pageSetUpPr", %{"fitToPage" => "0"})]),
-          Xs.element("sheetViews", [
-            Xs.empty_element("sheetView", %{
-              "defaultGridColor" => "1",
-              "rightToLeft" => "0",
-              "showFormulas" => "0",
-              "showGridLines" => "1",
-              "showOutlineSymbols" => "0",
-              "showRowColHeaders" => "1",
-              "showRuler" => "1",
-              "showWhiteSpace" => "0",
-              "showZeros" => "1",
-              "tabSelected" => "0",
-              "windowProtection" => "0",
-              "workbookViewId" => "0",
-              "zoomScale" => "100",
-              "zoomScaleNormal" => "0",
-              "zoomScalePageLayoutView" => "0",
-              "zoomScaleSheetLayoutView" => "0"
-            })
-          ]),
-          Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-          cols(headers, content, col_padding, col_widths),
-          Xs.element("sheetData", sheet_data(content, headers)),
-          Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
-          Xs.empty_element("printOptions", %{
-            "gridLines" => "0",
-            "headings" => "0",
-            "horizontalCentered" => "0",
-            "verticalCentered" => "0"
-          }),
-          Xs.empty_element("pageMargins", %{
-            "bottom" => "1.0",
-            "footer" => "0.5",
-            "header" => "0.5",
-            "left" => "0.75",
-            "right" => "0.75",
-            "top" => "1.0"
-          }),
-          Xs.empty_element("pageSetup"),
-          Xs.empty_element("headerFooter")
-        ]
-      )
+      {:open, "worksheet",
+       %{"xmlns" => Exceed.Namespace.main(), "xmlns:r" => Exceed.Namespace.relationships(), "xml:space" => "preserve"}},
+      Xs.element("sheetPr", [Xs.empty_element("pageSetUpPr", %{"fitToPage" => "0"})]),
+      Xs.element("sheetViews", [
+        Xs.empty_element("sheetView", %{
+          "defaultGridColor" => "1",
+          "rightToLeft" => "0",
+          "showFormulas" => "0",
+          "showGridLines" => "1",
+          "showOutlineSymbols" => "0",
+          "showRowColHeaders" => "1",
+          "showRuler" => "1",
+          "showWhiteSpace" => "0",
+          "showZeros" => "1",
+          "tabSelected" => "0",
+          "windowProtection" => "0",
+          "workbookViewId" => "0",
+          "zoomScale" => "100",
+          "zoomScaleNormal" => "0",
+          "zoomScalePageLayoutView" => "0",
+          "zoomScaleSheetLayoutView" => "0"
+        })
+      ]),
+      Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
+      cols(headers, content, col_padding, col_widths),
+      {:open, "sheetData", []},
+      sheet_data(content, headers),
+      {:close, "sheetData"},
+      Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
+      Xs.empty_element("printOptions", %{
+        "gridLines" => "0",
+        "headings" => "0",
+        "horizontalCentered" => "0",
+        "verticalCentered" => "0"
+      }),
+      Xs.empty_element("pageMargins", %{
+        "bottom" => "1.0",
+        "footer" => "0.5",
+        "header" => "0.5",
+        "left" => "0.75",
+        "right" => "0.75",
+        "top" => "1.0"
+      }),
+      Xs.empty_element("pageSetup"),
+      Xs.empty_element("headerFooter"),
+      {:close, "worksheet"}
     ]
   end
 
