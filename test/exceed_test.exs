@@ -6,9 +6,9 @@ defmodule ExceedTest do
   doctest Exceed
 
   describe "stream! without worksheets" do
-    setup [:make_tmpdir]
+    @describetag :tmp_dir
 
-    test "converts a workbook to a zlib stream that can be streamed to a file", %{tmpdir: tmpdir} do
+    test "converts a workbook to a zlib stream that can be streamed to a file", %{tmp_dir: tmpdir} do
       filename = Path.join(tmpdir, "empty_workbook.xlsx")
 
       assert_that(Exceed.Workbook.new("me") |> Exceed.stream!() |> Stream.into(File.stream!(filename)) |> Stream.run(),
@@ -36,7 +36,7 @@ defmodule ExceedTest do
       assert XlsxReader.sheet_names(wb) == []
     end
 
-    test "includes an xl/workbook.xml", %{tmpdir: tmpdir} do
+    test "includes an xl/workbook.xml", %{tmp_dir: tmpdir} do
       filename = Exceed.Workbook.new("me") |> stream_to_file(tmpdir)
       {:ok, wb} = extract_file(filename, "xl/workbook.xml")
 
@@ -49,9 +49,9 @@ defmodule ExceedTest do
   end
 
   describe "stream! with worksheets" do
-    setup [:make_tmpdir]
+    @describetag :tmp_dir
 
-    setup %{tmpdir: tmpdir} do
+    setup %{tmp_dir: tmpdir} do
       filename =
         Exceed.Workbook.new("me")
         |> Exceed.Workbook.add_worksheet(
@@ -87,9 +87,8 @@ defmodule ExceedTest do
   end
 
   describe "dates" do
-    setup [:make_tmpdir]
-
-    test "can be parsed", %{tmpdir: tmpdir} do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
       today = Date.utc_today()
 
       stream =
@@ -116,9 +115,8 @@ defmodule ExceedTest do
   end
 
   describe "datetimes" do
-    setup [:make_tmpdir]
-
-    test "can be parsed", %{tmpdir: tmpdir} do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
       now = DateTime.utc_now()
 
       stream =
@@ -147,9 +145,8 @@ defmodule ExceedTest do
   end
 
   describe "strings" do
-    setup [:make_tmpdir]
-
-    test "can be parsed", %{tmpdir: tmpdir} do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
       stream =
         Stream.unfold(65, fn char -> {[to_string([char])], char + 1} end)
         |> Stream.take(10_000)
