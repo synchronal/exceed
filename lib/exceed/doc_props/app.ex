@@ -7,10 +7,10 @@ defmodule Exceed.DocProps.App do
       Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       Xs.element(
         "Properties",
-        %{
-          "xmlns" => Exceed.Namespace.extended_properties(),
-          "xmlns:vt" => Exceed.Namespace.doc_props_vt()
-        },
+        [
+          {"xmlns", Exceed.Namespace.extended_properties()},
+          {"xmlns:vt", Exceed.Namespace.doc_props_vt()}
+        ],
         []
       )
     ]

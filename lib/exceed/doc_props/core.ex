@@ -9,13 +9,13 @@ defmodule Exceed.DocProps.Core do
       Xs.declaration(version: "1.0", encoding: "UTF-8", standalone: "yes"),
       Xs.element(
         "cp:coreProperties",
-        %{
-          "xmlns:cp" => Exceed.Namespace.core_props(),
-          "xmlns:dc" => Exceed.Namespace.dublin_core(),
-          "xmlns:dcterms" => Exceed.Namespace.dublin_core_terms(),
-          "xmlns:dcmitype" => Exceed.Namespace.dublin_core_type(),
-          "xmlns:xsi" => Exceed.Namespace.schema_instance()
-        },
+        [
+          {"xmlns:cp", Exceed.Namespace.core_props()},
+          {"xmlns:dc", Exceed.Namespace.dublin_core()},
+          {"xmlns:dcterms", Exceed.Namespace.dublin_core_terms()},
+          {"xmlns:dcmitype", Exceed.Namespace.dublin_core_type()},
+          {"xmlns:xsi", Exceed.Namespace.schema_instance()}
+        ],
         [
           # Xs.element("dc:title", Xs.content(title)),
           Xs.empty_element("dc:subject"),
