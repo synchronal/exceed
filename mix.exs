@@ -41,8 +41,8 @@ defmodule Exceed.MixProject do
       {:elixlsx, "> 0.0.0", only: :benchmark},
       {:ex_doc, "~> 0.31", only: [:docs, :dev], runtime: false},
       {:mix_audit, "~> 2.0", only: :dev, runtime: false},
-      {:moar, "~> 2.0", only: :test},
-      {:xlsx_reader, "~> 0.8", only: :test},
+      {:moar, "~> 3.0", only: :test},
+      {:xlsx_reader, "~> 0.8", only: :test, github: "xavier/xlsx_reader"},
       {:xml_query, "> 0.0.0", only: :test},
       {:xml_stream, "~> 0.3"},
       {:zstream, "~> 0.6.4"}
