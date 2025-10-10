@@ -15,10 +15,10 @@ jobs:
         include:
           - pair:
               elixir: 1.16
-              otp: 25
+              otp: 26
           - pair:
               elixir: 1.18
-              otp: 27
+              otp: 28
     name: Build Test
     runs-on: ubuntu-24.04
     env:
@@ -54,10 +54,10 @@ jobs:
         include:
           - pair:
               elixir: 1.16
-              otp: 25
+              otp: 26
           - pair:
               elixir: 1.18
-              otp: 27
+              otp: 28
     name: Build Dev
     runs-on: ubuntu-24.04
     env:
@@ -93,10 +93,10 @@ jobs:
         include:
           - pair:
               elixir: 1.16
-              otp: 25
+              otp: 26
           - pair:
               elixir: 1.18
-              otp: 27
+              otp: 28
     name: Test
     needs: build_test
     runs-on: ubuntu-24.04
@@ -130,10 +130,10 @@ jobs:
         include:
           - pair:
               elixir: 1.16
-              otp: 25
+              otp: 26
           - pair:
               elixir: 1.18
-              otp: 27
+              otp: 28
     name: Credo + Dialyxir
     needs: build_test
     runs-on: ubuntu-24.04
@@ -175,7 +175,7 @@ jobs:
         include:
           - pair:
               elixir: 1.18
-              otp: 27
+              otp: 28
     name: Audit
     needs: build_dev
     runs-on: ubuntu-24.04
@@ -215,7 +215,7 @@ jobs:
         include:
           - pair:
               elixir: 1.18
-              otp: 27
+              otp: 28
     name: Publish to Hex
     if: github.ref == 'refs/heads/main'
     needs:
