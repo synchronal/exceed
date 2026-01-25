@@ -72,13 +72,11 @@ defmodule Exceed.Workbook do
       )
     ]
   end
+end
 
-  defimpl Inspect do
-    import Inspect.Algebra
-
-    def inspect(wb, opts) do
-      worksheet_names = Enum.map(wb.worksheets, & &1.name)
-      concat(["#Exceed.Workbook<sheets: ", Inspect.List.inspect(worksheet_names, opts), ">"])
-    end
+defimpl Inspect, for: Exceed.Workbook do
+  def inspect(wb, opts) do
+    worksheet_names = Enum.map(wb.worksheets, & &1.name) |> Inspect.Algebra.to_doc(opts)
+    Inspect.Algebra.concat(["#Exceed.Workbook<sheets: ", worksheet_names, ">"])
   end
 end
