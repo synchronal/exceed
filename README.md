@@ -74,6 +74,21 @@ rows =
 Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows)
 ```
 
+### Raw rows mode
+
+For large data sets, the `raw_rows: true` option bypasses the `Cell` protocol
+and `XmlStream`, generating SpreadsheetML XML directly as iodata. Rows are
+processed in parallel batches using `Task.async_stream`.
+
+``` elixir
+Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows, raw_rows: true)
+```
+
+This is significantly faster for worksheets with many rows, at the cost of not
+supporting custom `Cell` protocol implementations. Supported value types:
+strings, integers, floats, booleans, atoms, `nil`, `Date`, `DateTime`, and
+`NaiveDateTime`.
+
 ## Alternatives & References
 
 This library is inspired by and learns from other great libraries. One might

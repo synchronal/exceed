@@ -65,6 +65,26 @@ defmodule Exceed.Worksheet do
     the [OpenXML.Spreadsheet Column docs](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.spreadsheet.column?view=openxml-3.0.1)
     for more info).
 
+  ## Raw rows mode
+
+  For large data sets, the `raw_rows: true` option bypasses the `Exceed.Worksheet.Cell`
+  protocol and `XmlStream`, generating SpreadsheetML XML directly as iodata. This can
+  be significantly faster for worksheets with many rows.
+
+  ``` elixir
+  iex> headers = ["Name", "Age"]
+  iex> rows = [["Alice", 30], ["Bob", 25]]
+  iex> Exceed.Worksheet.new("Sheet", headers, rows, raw_rows: true)
+  #Exceed.Worksheet<name: "Sheet", ...>
+  ```
+
+  Row data is processed in batches using `Task.async_stream` for parallel
+  iodata generation. Supported value types: strings, integers, floats, booleans,
+  atoms, `nil`, `Date`, `DateTime`, and `NaiveDateTime`.
+
+  Note: because the `Cell` protocol is bypassed, custom `Cell` implementations
+  are not available in raw rows mode.
+
   """
   alias Exceed.Worksheet.Cell
   alias XmlStream, as: Xs
@@ -80,7 +100,8 @@ defmodule Exceed.Worksheet do
           content: Enum.t(),
           headers: headers(),
           name: String.t(),
-          opts: spreadsheet_options()
+          opts: spreadsheet_options(),
+          raw_rows: boolean()
         }
 
   @derive {Inspect, only: [:name]}
@@ -89,11 +110,18 @@ defmodule Exceed.Worksheet do
     headers
     name
     opts
+    raw_rows
   )a
 
   @doc """
   Initialize a new worksheet to be added to a workbook. See `Exceed.Workbook.add_worksheet/2`.
   For worksheet options, see the module docs for `m:Exceed.Worksheet#module-sheet-options`.
+
+  ## Options
+
+  - `:raw_rows` - when `true`, bypasses the `Cell` protocol and generates XML
+    directly as iodata for better performance. See the module docs for details.
+  - `:cols` - column configuration. See the module docs for details.
 
   ## Examples
 
@@ -111,10 +139,18 @@ defmodule Exceed.Worksheet do
   def new(_name, [], _content, _opts),
     do: raise(Exceed.Error, "Worksheet headers must be a list of items or nil")
 
-  def new(name, headers, content, opts),
-    do: __struct__(name: name, headers: headers, content: content, opts: opts)
+  def new(name, headers, content, opts) do
+    {raw_rows, opts} = Keyword.pop(opts, :raw_rows, false)
+    __struct__(name: name, headers: headers, content: content, opts: opts, raw_rows: raw_rows)
+  end
+
+  @raw_batch_size 5_000
 
   @doc false
+  def to_xml(%__MODULE__{raw_rows: true} = ws) do
+    raw_xml_stream(ws)
+  end
+
   def to_xml(%__MODULE__{headers: headers, content: content, opts: opts}) do
     %{
       col_padding: col_padding,
@@ -228,5 +264,173 @@ defmodule Exceed.Worksheet do
   defp to_row(items, row_idx) do
     identifier = to_string(row_idx)
     {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier))], row_idx + 1}
+  end
+
+  # # # Raw rows fast path # # #
+
+  defp raw_xml_stream(%__MODULE__{headers: headers, content: content, opts: opts}) do
+    %{col_padding: col_padding, col_widths: col_widths} = normalize_opts(opts)
+    col_letters = column_letters(headers || hd(Enum.take(content, 1)))
+
+    header_xml = raw_header_xml(headers, col_padding, col_widths)
+    footer_xml = raw_footer_xml()
+
+    row_stream =
+      content
+      |> prepend_headers(headers)
+      |> Stream.with_index(1)
+      |> Stream.chunk_every(@raw_batch_size)
+      |> Task.async_stream(
+        fn batch ->
+          Enum.map(batch, fn {row, row_idx} ->
+            raw_row(row, row_idx, col_letters)
+          end)
+        end,
+        ordered: true,
+        max_concurrency: System.schedulers_online()
+      )
+      |> Stream.map(fn {:ok, rows} -> rows end)
+
+    Stream.concat([
+      [header_xml],
+      row_stream,
+      [footer_xml]
+    ])
+  end
+
+  defp column_letters(items) do
+    items
+    |> Enum.with_index()
+    |> Enum.map(fn {_, i} ->
+      col_idx_to_letter(i + 1)
+    end)
+  end
+
+  defp col_idx_to_letter(n) when n <= 26, do: <<n + ?A - 1>>
+
+  defp col_idx_to_letter(n) do
+    col_idx_to_letter(div(n - 1, 26)) <> <<rem(n - 1, 26) + ?A>>
+  end
+
+  defp raw_header_xml(headers, col_padding, col_widths) do
+    cols_xml = raw_cols_xml(headers, col_padding, col_widths)
+
+    [
+      ~s(<?xml version="1.0" encoding="UTF-8"?>),
+      ~s(<worksheet xmlns="#{Exceed.Namespace.main()}" xmlns:r="#{Exceed.Namespace.relationships()}" xml:space="preserve">),
+      ~s(<sheetPr><pageSetUpPr fitToPage="0"/></sheetPr>),
+      ~s(<sheetViews><sheetView defaultGridColor="1" rightToLeft="0" showFormulas="0" showGridLines="1" showOutlineSymbols="0" showRowColHeaders="1" showRuler="1" showWhiteSpace="0" showZeros="1" tabSelected="0" windowProtection="0" workbookViewId="0" zoomScale="100" zoomScaleNormal="0" zoomScalePageLayoutView="0" zoomScaleSheetLayoutView="0"/></sheetViews>),
+      ~s(<sheetFormatPr baseColWidth="8" defaultRowHeight="18"/>),
+      cols_xml,
+      ~s(<sheetData>)
+    ]
+  end
+
+  defp raw_cols_xml(nil, _padding, _widths), do: ""
+
+  defp raw_cols_xml(headers, padding, widths) do
+    cols =
+      headers
+      |> Enum.with_index(1)
+      |> Enum.map(fn {header, i} ->
+        width = Map.get(widths, i, String.length(to_string(header)) + padding)
+        ~s(<col min="#{i}" max="#{i}" width="#{width}"/>)
+      end)
+
+    ["<cols>", cols, "</cols>"]
+  end
+
+  defp raw_footer_xml do
+    [
+      "</sheetData>",
+      ~s(<sheetCalcPr fullCalcOnLoad="1"/>),
+      ~s(<printOptions gridLines="0" headings="0" horizontalCentered="0" verticalCentered="0"/>),
+      ~s(<pageMargins bottom="1.0" footer="0.5" header="0.5" left="0.75" right="0.75" top="1.0"/>),
+      "<pageSetup/>",
+      "<headerFooter/>",
+      "</worksheet>"
+    ]
+  end
+
+  defp raw_row(cells, row_idx, col_letters) do
+    row_str = Integer.to_string(row_idx)
+
+    [
+      "<row r=\"",
+      row_str,
+      "\">",
+      raw_cells(cells, row_str, col_letters),
+      "</row>"
+    ]
+  end
+
+  defp raw_cells(cells, row_str, col_letters) do
+    cells
+    |> Enum.zip(col_letters)
+    |> Enum.map(fn {value, letter} ->
+      raw_cell(value, letter, row_str)
+    end)
+  end
+
+  defp raw_cell(value, letter, row_str) when is_integer(value) do
+    ["<c r=\"", letter, row_str, "\" t=\"n\"><v>", Integer.to_string(value), "</v></c>"]
+  end
+
+  defp raw_cell(value, letter, row_str) when is_float(value) do
+    ["<c r=\"", letter, row_str, "\" t=\"n\"><v>", Float.to_string(value), "</v></c>"]
+  end
+
+  defp raw_cell(value, letter, row_str) when is_binary(value) do
+    ["<c r=\"", letter, row_str, "\" t=\"inlineStr\"><is><t>", escape_xml(value), "</t></is></c>"]
+  end
+
+  defp raw_cell(nil, letter, row_str) do
+    ["<c r=\"", letter, row_str, "\" t=\"inlineStr\"><is><t></t></is></c>"]
+  end
+
+  defp raw_cell(true, letter, row_str) do
+    ["<c r=\"", letter, row_str, "\" t=\"b\"><v>1</v></c>"]
+  end
+
+  defp raw_cell(false, letter, row_str) do
+    ["<c r=\"", letter, row_str, "\" t=\"b\"><v>0</v></c>"]
+  end
+
+  defp raw_cell(value, letter, row_str) when is_atom(value) do
+    raw_cell(Atom.to_string(value), letter, row_str)
+  end
+
+  defp raw_cell(%Date{year: year} = date, letter, row_str) when year >= 1900 do
+    value = Exceed.Util.to_excel_datetime(date)
+    ["<c r=\"", letter, row_str, "\" s=\"1\"><v>", Float.to_string(value), "</v></c>"]
+  end
+
+  defp raw_cell(%Date{} = date, letter, row_str) do
+    raw_cell(Date.to_iso8601(date), letter, row_str)
+  end
+
+  defp raw_cell(%DateTime{year: year} = dt, letter, row_str) when year >= 1900 do
+    value = Exceed.Util.to_excel_datetime(dt)
+    ["<c r=\"", letter, row_str, "\" s=\"2\"><v>", Float.to_string(value), "</v></c>"]
+  end
+
+  defp raw_cell(%DateTime{} = dt, letter, row_str) do
+    raw_cell(DateTime.to_iso8601(dt), letter, row_str)
+  end
+
+  defp raw_cell(%NaiveDateTime{year: year} = ndt, letter, row_str) when year >= 1900 do
+    value = Exceed.Util.to_excel_datetime(ndt)
+    ["<c r=\"", letter, row_str, "\" s=\"2\"><v>", Float.to_string(value), "</v></c>"]
+  end
+
+  defp raw_cell(%NaiveDateTime{} = ndt, letter, row_str) do
+    raw_cell(NaiveDateTime.to_iso8601(ndt), letter, row_str)
+  end
+
+  defp escape_xml(string) do
+    string
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
   end
 end

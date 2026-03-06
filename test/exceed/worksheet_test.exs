@@ -200,6 +200,61 @@ defmodule Exceed.WorksheetTest do
     end
   end
 
+  describe "to_xml with raw_rows" do
+    test "generates rows for the headers and each member of the stream", %{headers: headers, stream: stream} do
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 2), raw_rows: true)
+      xml = Worksheet.to_xml(ws) |> Enum.to_list() |> IO.iodata_to_binary()
+      xml = XmlQuery.parse(xml)
+
+      assert [header_row, row_1, row_2] = Xq.all(xml, "/worksheet/sheetData/row")
+
+      assert header_row |> Xq.attr("r") == "1"
+
+      header_row
+      |> extract_cells()
+      |> assert_eq([
+        %{type: "inlineStr", text: "inline strings", children: "is/t", cell: "A1"},
+        %{type: "inlineStr", text: "integers", children: "is/t", cell: "B1"},
+        %{type: "inlineStr", text: "floats", children: "is/t", cell: "C1"}
+      ])
+
+      row_1
+      |> extract_cells()
+      |> assert_eq([
+        %{type: "inlineStr", text: "row 1 cell 1", children: "is/t", cell: "A2"},
+        %{type: "n", text: "1", children: "v", cell: "B2"},
+        %{type: "n", text: "1.5", children: "v", cell: "C2"}
+      ])
+
+      row_2
+      |> extract_cells()
+      |> assert_eq([
+        %{type: "inlineStr", text: "row 2 cell 1", children: "is/t", cell: "A3"},
+        %{type: "n", text: "2", children: "v", cell: "B3"},
+        %{type: "n", text: "3.0", children: "v", cell: "C3"}
+      ])
+    end
+
+    test "generates correct column widths from headers", %{headers: headers, stream: stream} do
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0), raw_rows: true)
+      xml = Worksheet.to_xml(ws) |> Enum.to_list() |> IO.iodata_to_binary()
+      xml = XmlQuery.parse(xml)
+
+      assert [col1, col2, col3] = Xq.all(xml, "/worksheet/cols/col")
+
+      assert Xq.attr(col1, "width") == "18.25"
+      assert Xq.attr(col2, "width") == "12.25"
+      assert Xq.attr(col3, "width") == "10.25"
+    end
+
+    test "escapes XML special characters in strings" do
+      ws = Worksheet.new("sheet", ["h"], [["<b>bold</b> & \"quotes\""]], raw_rows: true)
+      xml = Worksheet.to_xml(ws) |> Enum.to_list() |> IO.iodata_to_binary()
+
+      assert xml =~ "&lt;b&gt;bold&lt;/b&gt; &amp; \"quotes\""
+    end
+  end
+
   # # #
 
   defp extract_cells(row) do

@@ -144,6 +144,57 @@ defmodule ExceedTest do
     end
   end
 
+  describe "raw_rows roundtrip" do
+    @describetag :tmp_dir
+
+    test "produces valid XLSX with correct data", %{tmp_dir: tmpdir} do
+      rows = [
+        ["Alice", 30, 1.75],
+        ["Bob", 25, 1.80],
+        ["Charlie", 35, 1.65]
+      ]
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(
+          Exceed.Worksheet.new("People", ["Name", "Age", "Height"], rows, raw_rows: true)
+        )
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert XlsxReader.sheet_names(wb) == ["People"]
+      assert {:ok, sheet_rows} = XlsxReader.sheet(wb, "People")
+
+      assert sheet_rows == [
+               ["Name", "Age", "Height"],
+               ["Alice", 30, 1.75],
+               ["Bob", 25, 1.8],
+               ["Charlie", 35, 1.65]
+             ]
+    end
+
+    test "handles dates", %{tmp_dir: tmpdir} do
+      today = Date.utc_today()
+      rows = [[today], [Date.add(today, -1)]]
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(
+          Exceed.Worksheet.new("Dates", ["Date"], rows, raw_rows: true)
+        )
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, sheet_rows} = XlsxReader.sheet(wb, "Dates")
+
+      assert sheet_rows == [
+               ["Date"],
+               [today],
+               [Date.add(today, -1)]
+             ]
+    end
+  end
+
   describe "strings" do
     @describetag :tmp_dir
     test "can be parsed", %{tmp_dir: tmpdir} do
