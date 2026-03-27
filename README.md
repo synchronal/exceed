@@ -76,12 +76,12 @@ Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows)
 
 ### Raw rows mode
 
-For large data sets, the `raw_rows: true` option bypasses the `Cell` protocol
+For large data sets, the `raw: true` option bypasses the `Cell` protocol
 and `XmlStream`, generating SpreadsheetML XML directly as iodata. Rows are
 processed in parallel batches using `Task.async_stream`.
 
 ``` elixir
-Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows, raw_rows: true)
+Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows, raw: true)
 ```
 
 This is significantly faster for worksheets with many rows, at the cost of not

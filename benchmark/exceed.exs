@@ -11,6 +11,15 @@ defmodule Benchmark do
       |> Zstream.zip()
       |> Stream.run()
     end)
+
+    benchmark(column_count, row_count, fn ->
+      Exceed.Worksheet.new("Sheet Name", headers, stream, raw: true)
+      |> Exceed.Worksheet.to_xml()
+      |> Exceed.File.file("xl/worksheets/sheet1.xml", opts)
+      |> List.wrap()
+      |> Zstream.zip()
+      |> Stream.run()
+    end)
   end
 
   defp headers(column_count) do

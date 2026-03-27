@@ -144,7 +144,7 @@ defmodule ExceedTest do
     end
   end
 
-  describe "raw_rows roundtrip" do
+  describe "raw: true roundtrip" do
     @describetag :tmp_dir
 
     test "produces valid XLSX with correct data", %{tmp_dir: tmpdir} do
@@ -156,9 +156,7 @@ defmodule ExceedTest do
 
       filename =
         Exceed.Workbook.new("me")
-        |> Exceed.Workbook.add_worksheet(
-          Exceed.Worksheet.new("People", ["Name", "Age", "Height"], rows, raw_rows: true)
-        )
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("People", ["Name", "Age", "Height"], rows, raw: true))
         |> stream_to_file(tmpdir)
 
       assert {:ok, wb} = XlsxReader.open(to_string(filename))
@@ -179,9 +177,7 @@ defmodule ExceedTest do
 
       filename =
         Exceed.Workbook.new("me")
-        |> Exceed.Workbook.add_worksheet(
-          Exceed.Worksheet.new("Dates", ["Date"], rows, raw_rows: true)
-        )
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Dates", ["Date"], rows, raw: true))
         |> stream_to_file(tmpdir)
 
       assert {:ok, wb} = XlsxReader.open(to_string(filename))

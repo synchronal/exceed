@@ -200,9 +200,9 @@ defmodule Exceed.WorksheetTest do
     end
   end
 
-  describe "to_xml with raw_rows" do
+  describe "to_xml with raw: true" do
     test "generates rows for the headers and each member of the stream", %{headers: headers, stream: stream} do
-      ws = Worksheet.new("sheet", headers, Enum.take(stream, 2), raw_rows: true)
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 2), raw: true)
       xml = Worksheet.to_xml(ws) |> Enum.to_list() |> IO.iodata_to_binary()
       xml = XmlQuery.parse(xml)
 
@@ -236,7 +236,7 @@ defmodule Exceed.WorksheetTest do
     end
 
     test "generates correct column widths from headers", %{headers: headers, stream: stream} do
-      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0), raw_rows: true)
+      ws = Worksheet.new("sheet", headers, Enum.take(stream, 0), raw: true)
       xml = Worksheet.to_xml(ws) |> Enum.to_list() |> IO.iodata_to_binary()
       xml = XmlQuery.parse(xml)
 
@@ -248,7 +248,7 @@ defmodule Exceed.WorksheetTest do
     end
 
     test "escapes XML special characters in strings" do
-      ws = Worksheet.new("sheet", ["h"], [["<b>bold</b> & \"quotes\""]], raw_rows: true)
+      ws = Worksheet.new("sheet", ["h"], [["<b>bold</b> & \"quotes\""]], raw: true)
       xml = Worksheet.to_xml(ws) |> Enum.to_list() |> IO.iodata_to_binary()
 
       assert xml =~ "&lt;b&gt;bold&lt;/b&gt; &amp; \"quotes\""
