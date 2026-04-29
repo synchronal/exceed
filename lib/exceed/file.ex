@@ -2,7 +2,7 @@ defmodule Exceed.File do
   @moduledoc false
 
   @buffer_size_bytes 128 * 1024
-  @accumulator {<<>>, 0}
+  @accumulator {[], 0}
 
   def file(content, filename, opts) do
     stream = XmlStream.stream!(content, printer: Exceed.Xml)
@@ -15,19 +15,18 @@ defmodule Exceed.File do
     |> Stream.chunk_while(
       @accumulator,
       fn chunk, {acc, length} ->
-        binary_chunk = IO.iodata_to_binary(chunk)
-        acc = acc <> binary_chunk
-        length = length + byte_size(binary_chunk)
+        length = length + IO.iodata_length(chunk)
+        acc = [acc | chunk]
 
         if length >= @buffer_size_bytes do
-          {:cont, acc, @accumulator}
+          {:cont, IO.iodata_to_binary(acc), @accumulator}
         else
           {:cont, {acc, length}}
         end
       end,
       fn
         {[], _} -> {:cont, [], @accumulator}
-        {acc, _} -> {:cont, acc, @accumulator}
+        {acc, _} -> {:cont, IO.iodata_to_binary(acc), @accumulator}
       end
     )
   end
