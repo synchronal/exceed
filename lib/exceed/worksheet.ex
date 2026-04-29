@@ -121,6 +121,9 @@ defmodule Exceed.Worksheet do
       col_widths: col_widths
     } = normalize_opts(opts)
 
+    resolved_headers = resolve_headers(headers, content)
+    letters = precompute_letters(length(resolved_headers))
+
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8"),
       {:open, "worksheet",
@@ -147,9 +150,9 @@ defmodule Exceed.Worksheet do
         })
       ]),
       Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-      cols(headers, content, col_padding, col_widths),
+      cols(resolved_headers, col_padding, col_widths),
       {:open, "sheetData", []},
-      sheet_data(content, headers),
+      sheet_data(content, headers, letters),
       {:close, "sheetData"},
       Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
       Xs.empty_element("printOptions", %{
@@ -176,13 +179,7 @@ defmodule Exceed.Worksheet do
 
   defp cell_idx_to_letter(x), do: IO.chardata_to_string(:lists.reverse(x))
 
-  defp cols(nil, content, padding, widths) do
-    case content |> Stream.take(1) |> Enum.to_list() do
-      [headers] -> cols(headers, content, padding, widths)
-    end
-  end
-
-  defp cols(headers, _content, padding, widths) do
+  defp cols(headers, padding, widths) do
     Xs.element(
       "cols",
       for {header, i} <- Enum.with_index(headers, 1) do
@@ -203,30 +200,56 @@ defmodule Exceed.Worksheet do
   defp next_alphabet([]), do: [?A]
   defp next_alphabet([x | rest]) when x == ?Z, do: [?A | next_alphabet(rest)]
 
+  defp precompute_letters(0), do: []
+
+  defp precompute_letters(count) do
+    {letters, _} =
+      Enum.map_reduce(1..count, [?A], fn _, position ->
+        {cell_idx_to_letter(position), next_alphabet(position)}
+      end)
+
+    letters
+  end
+
   defp prepend_headers(stream, nil), do: stream
   defp prepend_headers(stream, headers), do: Stream.concat([headers], stream)
 
-  defp sheet_data(stream, headers) do
+  defp resolve_headers(nil, content) do
+    case content |> Stream.take(1) |> Enum.to_list() do
+      [headers] -> headers
+    end
+  end
+
+  defp resolve_headers(headers, _content), do: headers
+
+  defp sheet_data(stream, headers, letters) do
     stream
     |> prepend_headers(headers)
     |> Stream.transform(1, fn row, row_idx ->
-      to_row(row, row_idx)
+      to_row(row, row_idx, letters)
     end)
   end
 
-  defp to_cells(row, row_idx) do
-    Enum.reduce(row, {[], [?A]}, fn cell, {cells, count} ->
-      attrs = Cell.to_attrs(cell)
-      body = Cell.to_content(cell)
-      cell_letter = cell_idx_to_letter(count)
+  defp to_cells(row, row_idx, letters), do: to_cells(row, row_idx, letters, [?A], [])
 
-      {:lists.append(cells, Xs.element("c", Map.put(attrs, "r", cell_letter <> row_idx), body)), next_alphabet(count)}
-    end)
-    |> elem(0)
+  defp to_cells([], _row_idx, _letters, _position, acc), do: :lists.reverse(acc)
+
+  defp to_cells([cell | rest], row_idx, [letter | letters_rest], position, acc) do
+    element = build_cell(cell, letter, row_idx)
+    to_cells(rest, row_idx, letters_rest, next_alphabet(position), [element | acc])
   end
 
-  defp to_row(items, row_idx) do
-    identifier = to_string(row_idx)
-    {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier))], row_idx + 1}
+  defp to_cells([cell | rest], row_idx, [], position, acc) do
+    element = build_cell(cell, cell_idx_to_letter(position), row_idx)
+    to_cells(rest, row_idx, [], next_alphabet(position), [element | acc])
+  end
+
+  defp build_cell(cell, letter, row_idx) do
+    Xs.element("c", Map.put(Cell.to_attrs(cell), "r", letter <> row_idx), Cell.to_content(cell))
+  end
+
+  defp to_row(items, row_idx, letters) do
+    identifier = Integer.to_string(row_idx)
+    {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier, letters))], row_idx + 1}
   end
 end
