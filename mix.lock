@@ -16,7 +16,7 @@
   "moar": {:hex, :moar, "4.3.0", "1f70d2efdd6ece58b6ee31afc2323a916779556860385a6a4d6535e1e222893c", [:mix], [], "hexpm", "72501aec5d332a31a2b6b0260872a6d76a9d291bc649906f249b43ec27d190b8"},
   "nimble_parsec": {:hex, :nimble_parsec, "1.4.2", "8efba0122db06df95bfaa78f791344a89352ba04baedd3849593bfce4d0dc1c6", [:mix], [], "hexpm", "4b21398942dda052b403bbe1da991ccd03a053668d147d53fb8c4e0efe09c973"},
   "saxy": {:hex, :saxy, "1.6.0", "02cb4e9bd045f25ac0c70fae8164754878327ee393c338a090288210b02317ee", [:mix], [], "hexpm", "ef42eb4ac983ca77d650fbdb68368b26570f6cc5895f0faa04d34a6f384abad3"},
-  "xlsx_reader": {:git, "https://github.com/xavier/xlsx_reader.git", "5411eef7329f123b49187c131fb700e455ae0563", []},
+  "xlsx_reader": {:hex, :xlsx_reader, "0.8.9", "616fa359b7e0ffff3d51515f763781c93a35e19a229c7cfafc493ebf4bfa427e", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}, {:saxy, "~> 1.5", [hex: :saxy, repo: "hexpm", optional: false]}], "hexpm", "3297d8df9cc64894193d448423ecda5e0f384c6e76cc6cc29b68082136c7d7e8"},
   "xml_query": {:hex, :xml_query, "2.0.1", "20c36ebd5049fc6241d1ef497fc2353c8ec79d4350f598bcadbdf1ec1f2e6e59", [:mix], [], "hexpm", "e0ab0ab0fd6d27be7da4e08155dbe232a3d6bb0e191ac71ab08ea64bce96bc30"},
   "xml_stream": {:hex, :xml_stream, "0.4.0", "74ba968fac79df82cc643664b8fb209562f3e06ffecc847c2b57cc9b074c136f", [:mix], [], "hexpm", "38cdb3dbb0f7fca005f240f0628839f81cfd21bf5dd58fe29048321fbc26a3db"},
   "yamerl": {:hex, :yamerl, "0.10.0", "4ff81fee2f1f6a46f1700c0d880b24d193ddb74bd14ef42cb0bcf46e81ef2f8e", [:rebar3], [], "hexpm", "346adb2963f1051dc837a2364e4acf6eb7d80097c0f53cbdc3046ec8ec4b4e6e"},
