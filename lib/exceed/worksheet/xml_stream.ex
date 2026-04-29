@@ -1,6 +1,8 @@
 defmodule Exceed.Worksheet.XmlStream do
   @moduledoc false
 
+  import Exceed.Util.Guards, only: [is_valid_year?: 1]
+  alias Exceed.Util
   alias Exceed.Worksheet
   alias Exceed.Worksheet.Cell
   alias XmlStream, as: Xs
@@ -108,6 +110,8 @@ defmodule Exceed.Worksheet.XmlStream do
     end)
   end
 
+  # # # cells
+
   defp to_cells(row, row_idx, letters), do: to_cells(row, row_idx, letters, [?A], [])
 
   defp to_cells([], _row_idx, _letters, _position, acc), do: :lists.reverse(acc)
@@ -122,9 +126,77 @@ defmodule Exceed.Worksheet.XmlStream do
     to_cells(rest, row_idx, [], next_alphabet(position), [element | acc])
   end
 
+  defp build_cell(cell, letter, row_idx) when is_integer(cell) do
+    {:raw, [~s'<c r="#{letter}#{row_idx}" t="n"><v>#{Integer.to_string(cell)}</v></c>']}
+  end
+
+  defp build_cell(cell, letter, row_idx) when is_float(cell) do
+    {:raw, [~s'<c r="#{letter}#{row_idx}" t="n"><v>#{:erlang.float_to_binary(cell, [:short])}</v></c>']}
+  end
+
+  defp build_cell(cell, letter, row_idx) when is_binary(cell) do
+    {:raw, [~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Exceed.Xml.escape_binary(cell)}</t></is></c>']}
+  end
+
+  defp build_cell(true, letter, row_idx),
+    do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>1</v></c>']}
+
+  defp build_cell(false, letter, row_idx),
+    do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>0</v></c>']}
+
+  defp build_cell(%Date{year: year} = date, letter, row_idx) when is_valid_year?(year),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" s="1"><v>#{:erlang.float_to_binary(Util.to_excel_datetime(date), [:short])}</v></c>'
+       ]}
+
+  defp build_cell(%Date{} = date, letter, row_idx),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Util.to_excel_datetime(date)}</t></is></c>'
+       ]}
+
+  defp build_cell(%DateTime{year: year} = date, letter, row_idx) when is_valid_year?(year),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" s="2"><v>#{:erlang.float_to_binary(Util.to_excel_datetime(date), [:short])}</v></c>'
+       ]}
+
+  defp build_cell(%DateTime{} = date, letter, row_idx),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Util.to_excel_datetime(date)}</t></is></c>'
+       ]}
+
+  defp build_cell(%NaiveDateTime{year: year} = date, letter, row_idx) when is_valid_year?(year),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" s="2"><v>#{:erlang.float_to_binary(Util.to_excel_datetime(date), [:short])}</v></c>'
+       ]}
+
+  defp build_cell(%NaiveDateTime{} = date, letter, row_idx),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Util.to_excel_datetime(date)}</t></is></c>'
+       ]}
+
+  if Code.ensure_loaded?(Decimal) do
+    defp build_cell(%Decimal{} = cell, letter, row_idx) do
+      {:raw, [~s'<c r="#{letter}#{row_idx}" t="n"><v>#{Decimal.to_string(cell)}</v></c>']}
+    end
+  end
+
   defp build_cell(cell, letter, row_idx) do
     Xs.element("c", Map.put(Cell.to_attrs(cell), "r", letter <> row_idx), Cell.to_content(cell))
   end
+
+  # # # rows
 
   defp to_row(items, row_idx, letters) do
     identifier = Integer.to_string(row_idx)

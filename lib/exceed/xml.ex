@@ -9,6 +9,11 @@ defmodule Exceed.Xml do
 
   def init(_), do: nil
 
+  @doc """
+  XML tag printer, optimized for speed.
+  """
+  def print({:raw, iodata}, state), do: {iodata, state}
+
   def print({:open, name, attrs}, _) when attrs == %{} or attrs == [] do
     {["<#{P.encode_name(name)}>"], nil}
   end
@@ -50,12 +55,21 @@ defmodule Exceed.Xml do
   end
 
   def print({:empty_elem, name, attrs}, _) do
-    {["<#{P.encode_name(name)}#{P.attrs_to_string(attrs)}/>"], nil}
+    {["<#{P.encode_name(name)}#{attrs_to_string(attrs)}/>"], nil}
   end
 
   def print({:const, value}, _) do
     {[escape_binary(to_string(value))], nil}
   end
+
+  @doc false
+  def escape_binary(""), do: ""
+  def escape_binary("&" <> rest), do: "&amp;" <> escape_binary(rest)
+  def escape_binary("\"" <> rest), do: "&quot;" <> escape_binary(rest)
+  def escape_binary("'" <> rest), do: "&apos;" <> escape_binary(rest)
+  def escape_binary("<" <> rest), do: "&lt;" <> escape_binary(rest)
+  def escape_binary(">" <> rest), do: "&gt;" <> escape_binary(rest)
+  def escape_binary(<<char::utf8>> <> rest), do: <<char::utf8>> <> escape_binary(rest)
 
   # # #
 
@@ -64,12 +78,4 @@ defmodule Exceed.Xml do
       acc <> " " <> P.encode_name(key) <> ~s(=") <> escape_binary(to_string(value)) <> ~s(")
     end)
   end
-
-  defp escape_binary(""), do: ""
-  defp escape_binary("&" <> rest), do: "&amp;" <> escape_binary(rest)
-  defp escape_binary("\"" <> rest), do: "&quot;" <> escape_binary(rest)
-  defp escape_binary("'" <> rest), do: "&apos;" <> escape_binary(rest)
-  defp escape_binary("<" <> rest), do: "&lt;" <> escape_binary(rest)
-  defp escape_binary(">" <> rest), do: "&gt;" <> escape_binary(rest)
-  defp escape_binary(<<char::utf8>> <> rest), do: <<char::utf8>> <> escape_binary(rest)
 end
