@@ -210,6 +210,11 @@ defmodule Exceed.Worksheet.XmlStream do
 
   defp to_row(items, row_idx, letters) do
     identifier = Integer.to_string(row_idx)
-    {[Xs.element("row", %{"r" => identifier}, to_cells(items, identifier, letters))], row_idx + 1}
+
+    {[
+       {:raw, [~s'<row r="#{identifier}">']},
+       to_cells(items, identifier, letters),
+       {:raw, [~c'</row>']}
+     ], row_idx + 1}
   end
 end
