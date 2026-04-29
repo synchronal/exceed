@@ -1,10 +1,24 @@
 defmodule Benchmark do
   def run(opts \\ [], column_count \\ 10, row_count \\ 100_000) do
     headers = headers(column_count)
-    stream = stream(column_count, row_count)
+    integers = integer_stream(column_count, row_count)
+    binaries = binary_stream(column_count, row_count)
+
+    IO.puts("== Integers")
 
     benchmark(column_count, row_count, fn ->
-      Exceed.Worksheet.new("Sheet Name", headers, stream)
+      Exceed.Worksheet.new("Sheet Name", headers, integers)
+      |> Exceed.Worksheet.to_xml()
+      |> Exceed.File.file("xl/worksheets/sheet1.xml", opts)
+      |> List.wrap()
+      |> Zstream.zip()
+      |> Stream.run()
+    end)
+
+    IO.puts("== Binary")
+
+    benchmark(column_count, row_count, fn ->
+      Exceed.Worksheet.new("Sheet Name", headers, binaries)
       |> Exceed.Worksheet.to_xml()
       |> Exceed.File.file("xl/worksheets/sheet1.xml", opts)
       |> List.wrap()
@@ -26,9 +40,25 @@ defmodule Benchmark do
     IO.puts("Batch size #{column_count}*#{batch_size} completed in #{duration}ms, rate: #{rate_per_row} rows/sec")
   end
 
-  def stream(column_count, row_count) do
+  def integer_stream(column_count, row_count) do
     Stream.iterate(1, &(&1 + 1))
     |> Stream.chunk_every(column_count)
     |> Stream.take(row_count)
+  end
+
+  def binary_stream(column_count, row_count) do
+    Stream.unfold(?A, fn char ->
+      {chars, next} = take_chars(char, Enum.random(10..20), [])
+      {to_string(chars), next}
+    end)
+    |> Stream.chunk_every(column_count)
+    |> Stream.take(row_count)
+  end
+
+  defp take_chars(char, 0, acc), do: {Enum.reverse(acc), char}
+
+  defp take_chars(char, n, acc) do
+    next = if char >= 0xD7FF, do: ?A, else: char + 1
+    take_chars(next, n - 1, [char | acc])
   end
 end
