@@ -270,6 +270,27 @@ defmodule ExceedTest do
     end
   end
 
+  describe "nils" do
+    @describetag :tmp_dir
+    test "fall back to empty styled cells and can be parsed", %{tmp_dir: tmpdir} do
+      stream = [["A", nil, "C"], [nil, "B", nil], [nil, nil, nil]]
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+
+      assert rows == [
+               ["A", "", "C"],
+               ["", "B", ""],
+               ["", "", ""]
+             ]
+    end
+  end
+
   describe "pre-1900 dates" do
     @describetag :tmp_dir
     test "fall back to inline strings and can be parsed", %{tmp_dir: tmpdir} do

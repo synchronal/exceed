@@ -138,6 +138,9 @@ defmodule Exceed.Worksheet.XmlStream do
     {:raw, [~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Exceed.Xml.escape_binary(cell)}</t></is></c>']}
   end
 
+  defp build_cell(nil, letter, row_idx),
+    do: {:raw, [~s'<c r="#{letter}#{row_idx}" s="3"/>']}
+
   defp build_cell(true, letter, row_idx),
     do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>1</v></c>']}
 
