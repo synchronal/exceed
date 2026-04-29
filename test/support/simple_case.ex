@@ -38,7 +38,7 @@ defmodule Test.SimpleCase do
   def stream_to_xml(wb),
     do:
       wb
-      |> XmlStream.stream!()
+      |> XmlStream.stream!(printer: Exceed.Xml)
       |> Enum.to_list()
       |> IO.iodata_to_binary()
 
