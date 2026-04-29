@@ -201,6 +201,24 @@ defmodule ExceedTest do
     end
   end
 
+  describe "atoms" do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
+      stream =
+        Stream.unfold(65, fn char -> {[to_string([char])], char + 1} end)
+        |> Stream.take(10)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+      assert Enum.take(rows, 4) == [["A"], ["B"], ["C"], ["D"]]
+    end
+  end
+
   describe "booleans" do
     @describetag :tmp_dir
     test "can be parsed", %{tmp_dir: tmpdir} do

@@ -147,6 +147,13 @@ defmodule Exceed.Worksheet.XmlStream do
   defp build_cell(false, letter, row_idx),
     do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>0</v></c>']}
 
+  defp build_cell(cell, letter, row_idx) when is_atom(cell),
+    do:
+      {:raw,
+       [
+         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Exceed.Xml.escape_binary(Atom.to_string(cell))}</t></is></c>'
+       ]}
+
   defp build_cell(%Date{year: year} = date, letter, row_idx) when is_valid_year?(year),
     do:
       {:raw,
