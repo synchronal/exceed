@@ -164,4 +164,125 @@ defmodule ExceedTest do
       assert Enum.take(Enum.drop(rows, 490), 6) == [["ȫ"], ["Ȭ"], ["ȭ"], ["Ȯ"], ["ȯ"], ["Ȱ"]]
     end
   end
+
+  describe "integers" do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
+      stream =
+        Stream.unfold(0, fn i -> {[i], i + 1} end)
+        |> Stream.take(100)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet", number_type: Integer)
+      assert Enum.take(rows, 5) == [[0], [1], [2], [3], [4]]
+    end
+  end
+
+  describe "floats" do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
+      stream =
+        Stream.unfold(0, fn i -> {[i / 2], i + 1} end)
+        |> Stream.take(100)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+      assert Enum.take(rows, 5) == [[0.0], [0.5], [1.0], [1.5], [2.0]]
+    end
+  end
+
+  describe "booleans" do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
+      stream =
+        Stream.unfold(0, fn i -> {[rem(i, 2) == 0], i + 1} end)
+        |> Stream.take(10)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+      assert Enum.take(rows, 4) == [[true], [false], [true], [false]]
+    end
+  end
+
+  describe "naive datetimes" do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
+      now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+      stream =
+        Stream.unfold(0, fn i -> {[NaiveDateTime.add(now, -i, :day)], i + 1} end)
+        |> Stream.take(100)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+
+      assert Enum.take(rows, 5) == [
+               [now],
+               [NaiveDateTime.add(now, -1, :day)],
+               [NaiveDateTime.add(now, -2, :day)],
+               [NaiveDateTime.add(now, -3, :day)],
+               [NaiveDateTime.add(now, -4, :day)]
+             ]
+    end
+  end
+
+  describe "decimals" do
+    @describetag :tmp_dir
+    test "can be parsed", %{tmp_dir: tmpdir} do
+      stream =
+        Stream.unfold(0, fn i -> {[Decimal.new("#{i}.5")], i + 1} end)
+        |> Stream.take(10)
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet", number_type: Decimal)
+
+      assert Enum.take(rows, 4) == [
+               [Decimal.new("0.5")],
+               [Decimal.new("1.5")],
+               [Decimal.new("2.5")],
+               [Decimal.new("3.5")]
+             ]
+    end
+  end
+
+  describe "pre-1900 dates" do
+    @describetag :tmp_dir
+    test "fall back to inline strings and can be parsed", %{tmp_dir: tmpdir} do
+      stream = [[~D[1899-12-31]], [~D[1500-06-15]], [~D[1066-10-14]]]
+
+      filename =
+        Exceed.Workbook.new("me")
+        |> Exceed.Workbook.add_worksheet(Exceed.Worksheet.new("Sheet", nil, stream))
+        |> stream_to_file(tmpdir)
+
+      assert {:ok, wb} = XlsxReader.open(to_string(filename))
+      assert {:ok, rows} = XlsxReader.sheet(wb, "Sheet")
+      assert rows == [["1899-12-31"], ["1500-06-15"], ["1066-10-14"]]
+    end
+  end
 end
