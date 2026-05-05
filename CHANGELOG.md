@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.4
+
 - Fix bug where nil values to create empty cells with a style that did not exist.
 
 ## 0.7.3
