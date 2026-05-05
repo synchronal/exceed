@@ -242,7 +242,7 @@ jobs:
           path: _build
           key: ${{ runner.os }}-dev-build-v1-${{ hashFiles('**/mix.lock') }}-${{ steps.beam.outputs.otp-version }}-${{ steps.beam.outputs.elixir-version }}
       - name: Publish to Hex
-        uses: synchronal/hex-publish-action@v3
+        uses: synchronal/hex-publish-action@v4
         with:
           name: exceed
           key: ${{ secrets.HEX_PM_KEY }}
