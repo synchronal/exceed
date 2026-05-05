@@ -1,4 +1,6 @@
 defmodule Exceed.Worksheet.XmlStream do
+  # @related [tests](test/exceed/worksheet/xml_stream_test.exs)
+
   @moduledoc false
 
   import Exceed.Util.Guards, only: [is_valid_year?: 1]
@@ -139,7 +141,7 @@ defmodule Exceed.Worksheet.XmlStream do
   end
 
   defp build_cell(nil, letter, row_idx),
-    do: {:raw, [~s'<c r="#{letter}#{row_idx}" s="3"/>']}
+    do: {:raw, [~s'<c r="#{letter}#{row_idx}" />']}
 
   defp build_cell(true, letter, row_idx),
     do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>1</v></c>']}

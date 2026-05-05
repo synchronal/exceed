@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Fix bug where nil values to create empty cells with a style that did not exist.
+
+## 0.7.3
+
+- Performance improvements.
+
 ## 0.7.2
 
 - Slight performance improvement when buffering writing worksheets.
