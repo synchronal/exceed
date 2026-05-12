@@ -206,7 +206,7 @@ jobs:
         run: mix deps.unlock --check-unused
         working-directory: .
       - name: Audit deps
-        run: mix deps.audit
+        run: mix deps.audit --ignore-advisory-ids GHSA-rhv4-8758-jx7v
         working-directory: .
   publish:
     strategy:

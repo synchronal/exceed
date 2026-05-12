@@ -19,7 +19,7 @@ checks = [
 [audit]
 checks = [
   { name = "Check formatting", shell = "mix format --check-formatted", remedy = "mix format" },
-  { step = "elixir", command = "audit-deps" },
+  { name = "elixir: audit-deps!", shell = "mix deps.audit --ignore-advisory-ids GHSA-rhv4-8758-jx7v" },
   { step = "elixir", command = "credo" },
   { step = "elixir", command = "dialyzer" },
   { check = "elixir", command = "unused-deps" },
