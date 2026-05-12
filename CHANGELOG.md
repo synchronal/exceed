@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.5
+
 - Loosing version requirements on `:decimal` library to include `~> 3.0`.
 
 ## 0.7.4
