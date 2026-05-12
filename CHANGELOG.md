@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Loosing version requirements on `:decimal` library to include `~> 3.0`.
+
 ## 0.7.4
 
 - Fix bug where nil values to create empty cells with a style that did not exist.

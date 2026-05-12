@@ -36,7 +36,7 @@ defmodule Exceed.MixProject do
   defp deps,
     do: [
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:decimal, "~> 2.1", optional: true},
+      {:decimal, ">= 2.0.0", optional: true},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
       {:elixlsx, "> 0.0.0", only: :benchmark},
       {:ex_doc, "~> 0.31", only: [:docs, :dev], runtime: false},
