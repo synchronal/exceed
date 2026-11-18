@@ -28,8 +28,8 @@ defmodule ExceedTest do
         "docProps/core.xml",
         "xl/_rels/workbook.xml.rels",
         "xl/workbook.xml",
-        "xl/styles.xml",
-        "xl/sharedStrings.xml"
+        "xl/sharedStrings.xml",
+        "xl/styles.xml"
       ])
 
       assert {:ok, wb} = XlsxReader.open(filename)

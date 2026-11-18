@@ -9,9 +9,8 @@ defmodule Exceed.Worksheet.XmlStream do
   alias Exceed.Worksheet.Cell
   alias XmlStream, as: Xs
 
-  def stream(%Worksheet{headers: headers, content: content}, %{col_padding: col_padding, col_widths: col_widths}) do
-    resolved_headers = resolve_headers(headers, content)
-    letters = precompute_letters(length(resolved_headers))
+  def stream(%Worksheet{headers: headers, content: content}, opts) do
+    opts = Map.put_new(opts, :row_heights, %{})
 
     [
       Xs.declaration(version: "1.0", encoding: "UTF-8"),
@@ -39,9 +38,7 @@ defmodule Exceed.Worksheet.XmlStream do
         })
       ]),
       Xs.empty_element("sheetFormatPr", %{"baseColWidth" => "8", "defaultRowHeight" => "18"}),
-      cols(resolved_headers, col_padding, col_widths),
-      {:open, "sheetData", []},
-      sheet_data(content, headers, letters),
+      sheet_data(content, headers, opts),
       {:close, "sheetData"},
       Xs.empty_element("sheetCalcPr", %{"fullCalcOnLoad" => "1"}),
       Xs.empty_element("printOptions", %{
@@ -66,8 +63,6 @@ defmodule Exceed.Worksheet.XmlStream do
 
   # # #
 
-  defp cell_idx_to_letter(x), do: IO.chardata_to_string(:lists.reverse(x))
-
   defp cols(headers, padding, widths) do
     Xs.element(
       "cols",
@@ -78,144 +73,164 @@ defmodule Exceed.Worksheet.XmlStream do
     )
   end
 
-  defp next_alphabet([x | rest]) when x >= ?A and x < ?Z, do: [x + 1 | rest]
-  defp next_alphabet([]), do: [?A]
-  defp next_alphabet([x | rest]) when x == ?Z, do: [?A | next_alphabet(rest)]
-
-  defp precompute_letters(0), do: []
-
-  defp precompute_letters(count) do
-    {letters, _} =
-      Enum.map_reduce(1..count, [?A], fn _, position ->
-        {cell_idx_to_letter(position), next_alphabet(position)}
-      end)
-
-    letters
-  end
+  defp precompute_letters(count), do: for(index <- 1..count//1, do: Worksheet.column_name(index))
 
   defp prepend_headers(stream, nil), do: stream
   defp prepend_headers(stream, headers), do: Stream.concat([headers], stream)
 
-  defp resolve_headers(nil, content) do
-    case content |> Stream.take(1) |> Enum.to_list() do
-      [headers] -> headers
-    end
-  end
-
-  defp resolve_headers(headers, _content), do: headers
-
-  defp sheet_data(stream, headers, letters) do
+  defp sheet_data(stream, headers, opts) do
     stream
     |> prepend_headers(headers)
-    |> Stream.transform(1, fn row, row_idx ->
-      to_row(row, row_idx, letters)
-    end)
+    |> Stream.transform(
+      fn -> {1, nil} end,
+      fn
+        row, {1, nil} ->
+          letters = precompute_letters(length(row))
+          {xml, next} = to_row(row, 1, letters, opts)
+          {[sheet_start(row, opts), xml], {next, letters}}
+
+        row, {index, letters} ->
+          {xml, next} = to_row(row, index, letters, opts)
+          {xml, {next, letters}}
+      end,
+      fn
+        {1, nil} = state -> {[sheet_start([], opts)], state}
+        state -> {[], state}
+      end,
+      fn _ -> :ok end
+    )
   end
+
+  defp sheet_start(row, opts), do: [cols(row, opts.col_padding, opts.col_widths), {:open, "sheetData", []}]
 
   # # # cells
 
-  defp to_cells(row, row_idx, letters), do: to_cells(row, row_idx, letters, [?A], [])
+  defp to_cells(row, row_idx, letters, opts), do: to_cells(row, row_idx, letters, 1, [], opts)
 
-  defp to_cells([], _row_idx, _letters, _position, acc), do: :lists.reverse(acc)
+  defp to_cells([], _row_idx, _letters, _position, acc, _opts), do: :lists.reverse(acc)
 
-  defp to_cells([cell | rest], row_idx, [letter | letters_rest], position, acc) do
-    element = build_cell(cell, letter, row_idx)
-    to_cells(rest, row_idx, letters_rest, next_alphabet(position), [element | acc])
+  defp to_cells([cell | rest], row_idx, [letter | letters_rest], position, acc, opts) do
+    element = styled_cell(cell, letter, row_idx, opts)
+    to_cells(rest, row_idx, letters_rest, position + 1, [element | acc], opts)
   end
 
-  defp to_cells([cell | rest], row_idx, [], position, acc) do
-    element = build_cell(cell, cell_idx_to_letter(position), row_idx)
-    to_cells(rest, row_idx, [], next_alphabet(position), [element | acc])
+  defp to_cells([cell | rest], row_idx, [], position, acc, opts) do
+    element = styled_cell(cell, Worksheet.column_name(position), row_idx, opts)
+    to_cells(rest, row_idx, [], position + 1, [element | acc], opts)
   end
+
+  defp styled_cell(cell, letter, row_idx, %{style_registry: registry} = opts) when not is_nil(registry) do
+    {cell, offset} = Exceed.Datetime.local(cell)
+    xml = build_cell(cell, letter, row_idx)
+    {cell_format, cell_style} = protocol_style(xml, opts)
+    format = rule_value(opts.cell_formats, letter, row_idx) || cell_format
+    style = rule_value(opts.cell_styles, letter, row_idx) || cell_style
+
+    if format || style || offset || native_format(cell) == :datetime do
+      id =
+        Exceed.Stylesheet.register(opts.style_registry, format || native_format(cell), style, offset, opts.style_config)
+
+      put_style(xml, id)
+    else
+      put_date_style(cell, xml, opts)
+    end
+  end
+
+  # Low-level XML rendering works without a workbook's style registry.
+  defp styled_cell(cell, letter, row_idx, _opts), do: build_cell(cell, letter, row_idx)
+
+  # Resolve the default date style once per sheet, not once per date cell.
+  defp put_date_style(%Date{year: year}, xml, %{date_style: id}) when is_valid_year?(year) and id != 1,
+    do: put_style(xml, id)
+
+  defp put_date_style(_cell, xml, _opts), do: xml
+
+  defp protocol_style([{:open, "c", %{"s" => name}}, _, _], opts) when is_atom(name) and name not in [nil, false],
+    do: {nil, Map.fetch!(opts.style_config.styles, name)}
+
+  # A numeric cellXfs index includes both the number format and appearance.
+  defp protocol_style([{:open, "c", %{"s" => index}}, _, _], opts) do
+    index = if is_binary(index), do: String.to_integer(index), else: index
+
+    case Map.fetch(opts.style_config.cell_xfs, index) do
+      {:ok, names} -> names
+      :error -> raise ArgumentError, "unknown cell style index: #{inspect(index)}"
+    end
+  end
+
+  defp protocol_style(_xml, _opts), do: {nil, nil}
+
+  defp native_format(%Date{year: year}) when is_valid_year?(year), do: :date
+  defp native_format(%DateTime{year: year}) when is_valid_year?(year), do: :datetime
+  defp native_format(%NaiveDateTime{year: year}) when is_valid_year?(year), do: :datetime
+  defp native_format(_), do: nil
+
+  defp rule_value(rules, letter, row_idx) do
+    Map.get(rules, {letter, row_idx}, Map.get(rules, row_idx, Map.get(rules, letter)))
+  end
+
+  defp put_style({:raw, [tag, _style, content]}, id), do: {:raw, [tag, ~s' s="#{id}"', content]}
+
+  defp put_style([{:open, "c", attrs}, content, closing], id),
+    do: [{:open, "c", Map.put(attrs, "s", id)}, content, closing]
+
+  # Keep the style separate so applying it never needs to parse serialized XML.
+  defp raw_cell(letter, row_idx, content, style \\ ""),
+    do: {:raw, [~s'<c r="#{letter}#{row_idx}"', style, content]}
 
   defp build_cell(cell, letter, row_idx) when is_integer(cell) do
-    {:raw, [~s'<c r="#{letter}#{row_idx}" t="n"><v>#{Integer.to_string(cell)}</v></c>']}
+    raw_cell(letter, row_idx, ~s' t="n"><v>#{Integer.to_string(cell)}</v></c>')
   end
 
   defp build_cell(cell, letter, row_idx) when is_float(cell) do
-    {:raw, [~s'<c r="#{letter}#{row_idx}" t="n"><v>#{:erlang.float_to_binary(cell, [:short])}</v></c>']}
+    raw_cell(letter, row_idx, ~s' t="n"><v>#{:erlang.float_to_binary(cell, [:short])}</v></c>')
   end
 
   defp build_cell(cell, letter, row_idx) when is_binary(cell) do
-    {:raw, [~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Exceed.Xml.escape_binary(cell)}</t></is></c>']}
+    raw_cell(letter, row_idx, ~s' t="inlineStr"><is><t>#{Exceed.Xml.escape_binary(cell)}</t></is></c>')
   end
 
-  defp build_cell(nil, letter, row_idx),
-    do: {:raw, [~s'<c r="#{letter}#{row_idx}" />']}
+  defp build_cell(nil, letter, row_idx), do: raw_cell(letter, row_idx, " />")
 
-  defp build_cell(true, letter, row_idx),
-    do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>1</v></c>']}
+  defp build_cell(true, letter, row_idx), do: raw_cell(letter, row_idx, ~s' t="b"><v>1</v></c>')
 
-  defp build_cell(false, letter, row_idx),
-    do: {:raw, [~s'<c r="#{letter}#{row_idx}" t="b"><v>0</v></c>']}
+  defp build_cell(false, letter, row_idx), do: raw_cell(letter, row_idx, ~s' t="b"><v>0</v></c>')
 
   defp build_cell(cell, letter, row_idx) when is_atom(cell),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Exceed.Xml.escape_binary(Atom.to_string(cell))}</t></is></c>'
-       ]}
+    do: build_cell(Atom.to_string(cell), letter, row_idx)
 
-  defp build_cell(%Date{year: year} = date, letter, row_idx) when is_valid_year?(year),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" s="1"><v>#{:erlang.float_to_binary(Util.to_excel_datetime(date), [:short])}</v></c>'
-       ]}
+  defp build_cell(%type{year: year} = date, letter, row_idx) when type in [Date, DateTime, NaiveDateTime] do
+    value = Util.to_excel_datetime(date)
 
-  defp build_cell(%Date{} = date, letter, row_idx),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Util.to_excel_datetime(date)}</t></is></c>'
-       ]}
-
-  defp build_cell(%DateTime{year: year} = date, letter, row_idx) when is_valid_year?(year),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" s="2"><v>#{:erlang.float_to_binary(Util.to_excel_datetime(date), [:short])}</v></c>'
-       ]}
-
-  defp build_cell(%DateTime{} = date, letter, row_idx),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Util.to_excel_datetime(date)}</t></is></c>'
-       ]}
-
-  defp build_cell(%NaiveDateTime{year: year} = date, letter, row_idx) when is_valid_year?(year),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" s="2"><v>#{:erlang.float_to_binary(Util.to_excel_datetime(date), [:short])}</v></c>'
-       ]}
-
-  defp build_cell(%NaiveDateTime{} = date, letter, row_idx),
-    do:
-      {:raw,
-       [
-         ~s'<c r="#{letter}#{row_idx}" t="inlineStr"><is><t>#{Util.to_excel_datetime(date)}</t></is></c>'
-       ]}
+    if is_valid_year?(year) do
+      style = if type == Date, do: ~s' s="1"', else: ~s' s="2"'
+      raw_cell(letter, row_idx, ~s'><v>#{:erlang.float_to_binary(value, [:short])}</v></c>', style)
+    else
+      build_cell(value, letter, row_idx)
+    end
+  end
 
   if Code.ensure_loaded?(Decimal) do
     defp build_cell(%Decimal{} = cell, letter, row_idx) do
-      {:raw, [~s'<c r="#{letter}#{row_idx}" t="n"><v>#{Decimal.to_string(cell)}</v></c>']}
+      raw_cell(letter, row_idx, ~s' t="n"><v>#{Decimal.to_string(cell)}</v></c>')
     end
   end
 
   defp build_cell(cell, letter, row_idx) do
-    Xs.element("c", Map.put(Cell.to_attrs(cell), "r", letter <> row_idx), Cell.to_content(cell))
+    attrs = cell |> Cell.to_attrs() |> Map.new() |> Map.put("r", letter <> row_idx)
+    Xs.element("c", attrs, Cell.to_content(cell))
   end
 
   # # # rows
 
-  defp to_row(items, row_idx, letters) do
+  defp to_row(items, row_idx, letters, opts) do
     identifier = Integer.to_string(row_idx)
+    height = Map.get(opts.row_heights, identifier)
+    attrs = if height, do: ~s' ht="#{height}" customHeight="1"', else: ""
 
     {[
-       {:raw, [~s'<row r="#{identifier}">']},
-       to_cells(items, identifier, letters),
+       {:raw, [~s'<row r="#{identifier}"#{attrs}>']},
+       to_cells(items, identifier, letters, opts),
        {:raw, [~c'</row>']}
      ], row_idx + 1}
   end
