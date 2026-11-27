@@ -29,6 +29,9 @@ defprotocol Exceed.Worksheet.Cell do
   this cell's content. Note that the `r` attribute (designating the cell's identifier
   in `A1` format) will be calculated when streaming a worksheet to XLSX, and should
   _not_ be included in this output.
+
+  The `"s"` attribute may be a numeric style index or an atom referencing a
+  named style declared in the `:styles` option of `Exceed.Worksheet.new/4`.
   """
   @spec to_attrs(t) :: XmlStream.attrs()
   def to_attrs(value)

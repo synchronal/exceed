@@ -74,6 +74,55 @@ rows =
 Exceed.Worksheet.new("Sheet Name", ["Heading 1", "Heading 2"], rows)
 ```
 
+### Formats
+
+Declare names or use Excel format strings directly. Formats do not change value types.
+
+``` elixir
+formats = [
+  amount: "#,##0.00",
+  date: "yyyy-mm-dd",
+  datetime: "yyyy-mm-dd hh:mm:ss {offset}"
+]
+```
+
+Dates are numeric Excel values. `{offset}` displays a `DateTime`'s UTC offset;
+naive datetimes have no offset.
+
+### Styles
+
+``` elixir
+styles = [
+  header: [bold: true, align: :center, valign: :center, wrap_text: true],
+  highlight: [bg_color: "#FFF2CC", border: :thin]
+]
+```
+
+### Columns, rows and cells
+
+Indices start at 1; columns also accept uppercase letters. Settings accept names
+or inline values. Precedence: exact cell, row, column. The last rule for each
+selector wins independently for format and style.
+
+``` elixir
+Exceed.Worksheet.new("Report", ["Date", "Amount", "Fee", "Note"], rows,
+  formats: formats,
+  styles: styles,
+  cols: [{1, width: 14.0, format: :date}, {"B", width: 18.0, format: :amount}],
+  rows: [{1, height: 30.0, style: :header}],
+  cells: [
+    {"B2", format: "#,##0.00########", style: [bold: true]},
+    {"B*", style: :highlight},
+    {"*3", style: :highlight},
+    {{:column, 3}, format: :amount},
+    {{:column, "D"}, style: [wrap_text: false]}
+  ]
+)
+```
+
+Rows remain lazy. Custom types implement `Exceed.Worksheet.Cell`;
+`"s"` can reference a named style.
+
 ## Alternatives & References
 
 This library is inspired by and learns from other great libraries. One might
